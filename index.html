@@ -57,6 +57,15 @@
     font-size:16px;
   }
   *{box-sizing:border-box;}
+  /* Kill double-tap-to-zoom everywhere, exhaustively: every element gets an
+     explicit touch-action (never left at the default 'auto'), so there's no
+     gap in the ancestor-intersection that iOS Safari can fall back to zoom
+     through. Deliberately never uses 'manipulation' or 'pinch-zoom' — real-world
+     testing shows those values can silently re-enable automatic zoom elsewhere
+     on the page. The two spots that need real scrolling get pan-x/pan-y
+     overrides below (.lcd-expr, .modal-card-wide), each of which still
+     excludes double-tap-zoom on its own. */
+  *, *::before, *::after{ touch-action:none; }
   html{
     margin:0; padding:0; height:100%;
     background:var(--bg-desk-1);

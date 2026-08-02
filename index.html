@@ -417,8 +417,20 @@
   }
 
   footer.note{
-    text-align:center; color:#5f594d; font-size:0.68rem; margin-top:26px;
+    display:flex; align-items:center; justify-content:center;
+    gap:12px; flex-wrap:wrap;
+    text-align:center; color:#5f594d; font-size:0.7rem; margin-top:26px;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:0.3px;
   }
+  footer.note a{
+    color:#8b8272; text-decoration:none;
+    border-bottom:1px solid transparent;
+    padding-bottom:1px;
+  }
+  footer.note a:hover, footer.note a:focus-visible{
+    color:var(--accent); border-color:var(--accent);
+  }
+  footer.note .dot{ color:#4a453d; }
 
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
@@ -488,7 +500,13 @@
     </section>
   </div>
 
-  <footer class="note">Progress auto-saves to this browser — close the tab any time and pick up where you left off.</footer>
+  <footer class="note">
+    <a href="about.html">About</a>
+    <span class="dot">&bull;</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <span class="dot">&bull;</span>
+    <a href="terms.html">Terms of Use</a>
+  </footer>
 </div>
 
 <!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->

@@ -308,6 +308,42 @@
     display:flex; align-items:center; justify-content:center;
     font-family:'Space Grotesk'; font-size:0.6rem; color:#6b6459;
     letter-spacing:1px; background:var(--case-lo); border-radius:8px;
+    border:none; cursor:pointer; transition:background .15s, color .15s;
+  }
+  .btn-chip:hover{ background:#302c26; color:var(--text-dim); }
+  .btn-chip:active{ transform:translateY(1px); }
+
+  /* ---------- Ascend (hold-to-confirm) button ---------- */
+  .ascend-btn{
+    position:relative;
+    width:100%;
+    overflow:hidden;
+    background:var(--case-lo);
+    border:1px solid #5a3129;
+    border-radius:10px;
+    padding:14px;
+    font-family:'Space Grotesk'; font-weight:700; font-size:0.85rem;
+    letter-spacing:0.5px; color:var(--text-light);
+    cursor:pointer;
+    touch-action:none;
+  }
+  .ascend-btn-fill{
+    position:absolute; inset:0; width:0%;
+    background:linear-gradient(90deg, #7a2b20, var(--danger));
+    z-index:0;
+  }
+  .ascend-btn-label{ position:relative; z-index:1; }
+  .ascend-btn.holding{ animation:ascendShake 0.13s linear infinite; }
+  @keyframes ascendShake{
+    0%{ transform:translate(0,0); }
+    25%{ transform:translate(-2px,1px); }
+    50%{ transform:translate(2px,-1px); }
+    75%{ transform:translate(-1px,-2px); }
+    100%{ transform:translate(0,0); }
+  }
+  .modal-ascend-note{
+    font-size:0.65rem; color:var(--text-dim); text-align:center;
+    margin-top:8px; letter-spacing:0.3px;
   }
 
   /* ---------- Modals ---------- */
@@ -494,7 +530,7 @@
           <button class="key key-eq btn-eq" data-action="equals" aria-label="Equals">=</button>
 
           <button class="key key-num btn-0 locked" data-value="0">0</button>
-          <div class="btn-chip">MEM</div>
+          <button class="btn-chip" data-action="ascend" aria-label="Open Memory Bank / Ascension">MEM</button>
         </div>
       </div>
     </section>
@@ -533,6 +569,32 @@
     <div class="modal-scroll-area">
       <div class="modal-solvers-list" id="solversList"></div>
     </div>
+  </div>
+</div>
+
+<!-- ASCENSION MODAL (opens via the MEM key) -->
+<div class="modal-overlay" id="ascendModal" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-close" id="ascendModalClose" aria-label="Close">✕</button>
+    <div class="modal-title">Memory Bank</div>
+    <div class="modal-desc">Ascending wipes your score, unlocked digits &amp; operators, and every Auto‑Solver back to zero. In exchange, each Auto‑Solver you currently own converts into permanent Memory Points — The Oracle is worth 1 point per unit owned, every other solver a fraction of that based on how its price compares to The Oracle's. Points never reset, and they permanently multiply everything your Auto‑Solvers produce from then on.</div>
+    <div class="modal-cost-row">
+      <span class="modal-cost-label">Current Points</span>
+      <span class="modal-cost" id="ascendCurrentPts">0</span>
+    </div>
+    <div class="modal-cost-row">
+      <span class="modal-cost-label">Gain On Ascend</span>
+      <span class="modal-cost" id="ascendGainPts">+0</span>
+    </div>
+    <div class="modal-cost-row">
+      <span class="modal-cost-label">Total After</span>
+      <span class="modal-cost" id="ascendTotalPts">0</span>
+    </div>
+    <button class="ascend-btn" id="ascendBtn">
+      <span class="ascend-btn-fill" id="ascendBtnFill"></span>
+      <span class="ascend-btn-label" id="ascendBtnLabel">HOLD TO ASCEND</span>
+    </button>
+    <div class="modal-ascend-note">hold for 2 seconds to confirm</div>
   </div>
 </div>
 
@@ -667,6 +729,7 @@
     everBought:false,
     everClicked:false,
     muted:false,
+    ascensionPoints:0, // permanent — survives ascension, unlike everything else above
   };
 
   /* =========================================================
@@ -685,6 +748,7 @@
         everBought: state.everBought,
         everClicked: state.everClicked,
         muted: state.muted,
+        ascensionPoints: state.ascensionPoints,
         buildings: buildingsData.map(b => ({id:b.id, count:b.count})),
         savedAt: Date.now(),
       };
@@ -708,6 +772,9 @@
     if(typeof data.everBought === 'boolean') state.everBought = data.everBought;
     if(typeof data.everClicked === 'boolean') state.everClicked = data.everClicked;
     if(typeof data.muted === 'boolean') state.muted = data.muted;
+    if(typeof data.ascensionPoints === 'number' && isFinite(data.ascensionPoints) && data.ascensionPoints >= 0){
+      state.ascensionPoints = data.ascensionPoints;
+    }
 
     if(Array.isArray(data.buildings)){
       data.buildings.forEach(saved=>{
@@ -834,6 +901,19 @@
     const scaled = n / Math.pow(10, tier*3);
     return (neg?'-':'') + scaled.toFixed(scaled < 10 ? 2 : 1) + SUFFIXES[tier];
   }
+  function formatPoints(n){
+    if(Number.isNaN(n)) return 'ERR';
+    if(!isFinite(n)) return n > 0 ? '∞' : '-∞';
+    const neg = n < 0; n = Math.abs(n);
+    if(n === 0) return '0';
+    if(n < 1000){
+      const decimals = n < 0.01 ? 4 : (n < 1 ? 3 : 2);
+      let s = n.toFixed(decimals);
+      if(s.indexOf('.') !== -1) s = s.replace(/0+$/, '').replace(/\.$/, '');
+      return (neg?'-':'') + s;
+    }
+    return (neg?'-':'') + formatCompact(n);
+  }
   function formatScoreMain(n){
     if(Number.isNaN(n)) return 'ERR';
     if(!isFinite(n)) return 'E';
@@ -891,6 +971,14 @@
   const solversListEl = document.getElementById('solversList');
   const solversModalCloseBtn = document.getElementById('solversModalClose');
 
+  const ascendModalEl = document.getElementById('ascendModal');
+  const ascendModalCloseBtn = document.getElementById('ascendModalClose');
+  const ascendCurrentPtsEl = document.getElementById('ascendCurrentPts');
+  const ascendGainPtsEl = document.getElementById('ascendGainPts');
+  const ascendTotalPtsEl = document.getElementById('ascendTotalPts');
+  const ascendBtnEl = document.getElementById('ascendBtn');
+  const ascendBtnFillEl = document.getElementById('ascendBtnFill');
+
   /* =========================================================
      TAPE LOG
   ========================================================= */
@@ -908,8 +996,29 @@
   /* =========================================================
      TOTAL CPS
   ========================================================= */
+  function pointsMultiplier(){
+    // A fresh save has 0 Memory Points, so this stays at 1x (unchanged
+    // output) until the first ascension — points ADD to the base rate
+    // rather than replacing it, so early play is never zeroed out.
+    return 1 + state.ascensionPoints;
+  }
   function totalCps(){
-    return buildingsData.reduce((sum,b) => sum + b.count * b.baseCps, 0);
+    return buildingsData.reduce((sum,b) => sum + b.count * b.baseCps, 0) * pointsMultiplier();
+  }
+
+  /* =========================================================
+     ASCENSION / MEMORY POINTS
+     Every Auto-Solver owned converts into permanent points on ascend.
+     The Oracle is worth 1 point per unit; every other solver is worth
+     a fraction of that, based on how its base price compares to The
+     Oracle's base price.
+  ========================================================= */
+  const oracleDef = buildingsData.find(b => b.id === 'oracle');
+  function pointsPerUnit(b){
+    return b.baseCost / oracleDef.baseCost;
+  }
+  function calcAscensionGain(){
+    return buildingsData.reduce((sum,b) => sum + b.count * pointsPerUnit(b), 0);
   }
 
   /* =========================================================
@@ -1080,6 +1189,7 @@
     const action = btn.dataset.action;
     const value = btn.dataset.value;
     if(action === 'solvers'){ openSolversModal(); return; }
+    if(action === 'ascend'){ openAscendModal(); return; }
     if(action === 'equals'){ doEquals(); return; }
     if(value === undefined) return;
     const isDigit = '0123456789'.indexOf(value) !== -1;
@@ -1190,7 +1300,7 @@
     row.className = 'shop-item';
     row.innerHTML =
       '<div class="item-name">' + def.name + '</div>' +
-      '<div class="count-badge">owned: <span class="cnt">0</span> · ' + def.exprShow + ' = ' + formatCompact(def.value) + ' each sec</div>' +
+      '<div class="count-badge">owned: <span class="cnt">0</span> · ' + def.exprShow + ' = <span class="val">' + formatCompact(def.value) + '</span> each sec</div>' +
       '<div class="item-flavor">' + def.flavor + '</div>' +
       '<button class="buy-btn"><span class="cost">0</span><span class="label">BUY</span></button>';
     const buyBtn = row.querySelector('.buy-btn');
@@ -1206,7 +1316,7 @@
       refreshAll();
       saveState();
     });
-    def._row = row; def._buyBtn = buyBtn; def._cnt = row.querySelector('.cnt'); def._costEl = row.querySelector('.cost');
+    def._row = row; def._buyBtn = buyBtn; def._cnt = row.querySelector('.cnt'); def._costEl = row.querySelector('.cost'); def._valEl = row.querySelector('.val');
     return row;
   }
 
@@ -1217,6 +1327,7 @@
       const unlocked = buildingUnlocked(def);
       def._row.classList.toggle('locked', !unlocked);
       def._cnt.textContent = def.count;
+      def._valEl.textContent = formatCompact(def.baseCps * pointsMultiplier());
       const cost = buildingCost(def);
       def._costEl.textContent = formatCompact(cost);
       def._buyBtn.disabled = !unlocked || state.score < cost;
@@ -1240,6 +1351,91 @@
     if(modalTarget) refreshItemModalIfOpen();
     if(solversModalOpen) refreshBuildingsList();
   }
+
+  /* =========================================================
+     ASCENSION MODAL
+  ========================================================= */
+  function openAscendModal(){
+    const gain = calcAscensionGain();
+    ascendCurrentPtsEl.textContent = formatPoints(state.ascensionPoints);
+    ascendGainPtsEl.textContent = '+' + formatPoints(gain);
+    ascendTotalPtsEl.textContent = formatPoints(state.ascensionPoints + gain);
+    resetAscendBtn();
+    ascendModalEl.classList.add('open');
+    ascendModalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeAscendModal(){
+    cancelAscendHold();
+    ascendModalEl.classList.remove('open');
+    ascendModalEl.setAttribute('aria-hidden', 'true');
+  }
+
+  ascendModalCloseBtn.addEventListener('click', closeAscendModal);
+  ascendModalEl.addEventListener('click', (e)=>{ if(e.target === ascendModalEl) closeAscendModal(); });
+
+  function performAscension(){
+    const gain = calcAscensionGain();
+    state.ascensionPoints += gain;
+
+    // wipe everything else — this is the "ascension" trade
+    state.score = 0;
+    state.selectedDigit = '1';
+    state.selectedOperator = '+';
+    state.unlockedNumbers = new Set(['1']);
+    state.unlockedOperators = new Set(['+']);
+    state.everBought = false;
+    state.everClicked = false;
+    buildingsData.forEach(b => { b.count = 0; });
+
+    updateKeypadLocks();
+    renderExpr();
+    refreshAll();
+    printTape('ASCENDED. +' + formatPoints(gain) + ' MEM PTS (total ' + formatPoints(state.ascensionPoints) + ')', true);
+    beep(440, 0.15, 0.07);
+    saveState();
+  }
+
+  /* ---- hold-to-confirm button: 2s red fill + shake ---- */
+  let ascendHoldTimeout = null;
+
+  function resetAscendBtn(){
+    ascendBtnEl.classList.remove('holding');
+    ascendBtnFillEl.style.transition = 'none';
+    ascendBtnFillEl.style.width = '0%';
+  }
+
+  function startAscendHold(e){
+    e.preventDefault();
+    if(ascendHoldTimeout) return;
+    try{ ascendBtnEl.setPointerCapture(e.pointerId); }catch(err){}
+    ascendBtnEl.classList.add('holding');
+    ascendBtnFillEl.style.transition = 'none';
+    ascendBtnFillEl.style.width = '0%';
+    void ascendBtnFillEl.offsetWidth; // force reflow so the transition below starts from 0%
+    ascendBtnFillEl.style.transition = 'width 2s linear';
+    ascendBtnFillEl.style.width = '100%';
+    ascendHoldTimeout = setTimeout(()=>{
+      ascendHoldTimeout = null;
+      performAscension();
+      closeAscendModal();
+    }, 2000);
+  }
+
+  function cancelAscendHold(){
+    if(ascendHoldTimeout){
+      clearTimeout(ascendHoldTimeout);
+      ascendHoldTimeout = null;
+    }
+    ascendBtnEl.classList.remove('holding');
+    ascendBtnFillEl.style.transition = 'width 0.2s ease-out';
+    ascendBtnFillEl.style.width = '0%';
+  }
+
+  ascendBtnEl.addEventListener('pointerdown', startAscendHold);
+  ascendBtnEl.addEventListener('pointerup', cancelAscendHold);
+  ascendBtnEl.addEventListener('pointerleave', cancelAscendHold);
+  ascendBtnEl.addEventListener('pointercancel', cancelAscendHold);
 
   /* =========================================================
      MUTE

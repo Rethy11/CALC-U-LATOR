@@ -63,7 +63,7 @@
      through. Deliberately never uses 'manipulation' or 'pinch-zoom' — real-world
      testing shows those values can silently re-enable automatic zoom elsewhere
      on the page. The two spots that need real scrolling get pan-x/pan-y
-     overrides below (.lcd-expr, .modal-card-wide), each of which still
+     overrides below (.lcd-expr, .modal-scroll-area), each of which still
      excludes double-tap-zoom on its own. */
   *, *::before, *::after{ touch-action:none; }
   html{
@@ -328,7 +328,32 @@
     max-width:320px; width:100%;
     box-shadow:0 24px 48px -16px rgba(0,0,0,0.8);
   }
-  .modal-card-wide{ max-width:440px; max-height:78vh; overflow-y:auto; touch-action:pan-y; }
+  .modal-card-wide{
+    max-width:440px; max-height:78vh;
+    padding:0;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .solvers-head{
+    flex:0 0 auto;
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:24px 20px 14px;
+  }
+  .solvers-head .modal-title{ margin:0; }
+  .solvers-head .modal-close{ position:static; flex:0 0 auto; }
+  .modal-scroll-area{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding:0 20px 20px;
+    touch-action:pan-y;
+  }
+  /* Override the page-wide touch-action:none inside the scrollable solvers
+     area (and on its descendants, including the buy buttons) so a
+     touch-drag that starts on a button still scrolls the list instead of
+     being swallowed. Higher specificity than the universal `*` rule above. */
+  .modal-scroll-area, .modal-scroll-area *{ touch-action:pan-y; }
   .modal-close{
     position:absolute; top:12px; right:12px;
     width:28px; height:28px; border-radius:50%;
@@ -483,9 +508,13 @@
 <!-- AUTO-SOLVERS MODAL (opens via the SOLVE key) -->
 <div class="modal-overlay" id="solversModal" aria-hidden="true">
   <div class="modal-card modal-card-wide">
-    <button class="modal-close" id="solversModalClose" aria-label="Close">✕</button>
-    <div class="modal-title">Auto‑Solvers</div>
-    <div class="modal-solvers-list" id="solversList"></div>
+    <div class="solvers-head">
+      <div class="modal-title">Auto‑Solvers</div>
+      <button class="modal-close" id="solversModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-scroll-area">
+      <div class="modal-solvers-list" id="solversList"></div>
+    </div>
   </div>
 </div>
 
@@ -547,7 +576,7 @@
   /* =========================================================
      DISABLE PAGE SCROLLING
   ========================================================= */
-  const SCROLLABLE_SELECTOR = '.modal-card-wide, .lcd-expr';
+  const SCROLLABLE_SELECTOR = '.modal-scroll-area, .lcd-expr';
   document.addEventListener('touchmove', function(e){
     if(e.target.closest(SCROLLABLE_SELECTOR)) return;
     e.preventDefault();
@@ -561,32 +590,32 @@
      DATA
   ========================================================= */
   const numbersData = [
-    {digit:'2', cost:120},
-    {digit:'3', cost:480},
-    {digit:'4', cost:2200},
-    {digit:'5', cost:9000},
-    {digit:'6', cost:42000},
-    {digit:'7', cost:100000000},
-    {digit:'8', cost:700000000},
-    {digit:'9', cost:25000000000},
-    {digit:'0', cost:150000000000},
+    {digit:'2', cost:130},
+    {digit:'3', cost:280},
+    {digit:'4', cost:1650},
+    {digit:'5', cost:3600},
+    {digit:'6', cost:11600},
+    {digit:'7', cost:53000},
+    {digit:'8', cost:35000000},
+    {digit:'9', cost:280000000},
+    {digit:'0', cost:5400000000},
   ];
 
   const operatorsData = [
-    {id:'*', symbol:'×', name:'Multiply', cost:600, desc:'Unlocks × on the keypad.'},
-    {id:'!', symbol:'!', name:'Factorial', cost:15000, desc:'Unlocks ! on the keypad.'},
-    {id:'^', symbol:'^', name:'Exponent', cost:40000000, desc:'Unlocks ^ on the keypad.'},
+    {id:'*', symbol:'×', name:'Multiply', cost:1000, desc:'Unlocks × on the keypad.'},
+    {id:'!', symbol:'!', name:'Factorial', cost:5000, desc:'Unlocks ! on the keypad.'},
+    {id:'^', symbol:'^', name:'Exponent', cost:150000, desc:'Unlocks ^ on the keypad.'},
   ];
 
   const buildingsData = [
-    {id:'add',      name:'Adding Machine',   exprRaw:'1+1',   exprShow:'1 + 1',   baseCost:16,           count:0, req:{n:[],        o:[]},        flavor:'A single lever, tirelessly pulled.'},
-    {id:'abacus',   name:'Abacus Array',     exprRaw:'2+3',   exprShow:'2 + 3',   baseCost:60,           count:0, req:{n:['2','3'],  o:[]},        flavor:'Beads click in perfect rhythm.'},
-    {id:'slide',    name:'Slide Rule Engine',exprRaw:'4*3',   exprShow:'4 × 3',   baseCost:216,          count:0, req:{n:['4','3'],  o:['*']},     flavor:'Logarithms, cranked by hand.'},
-    {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:3000,         count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
-    {id:'power',    name:'Power Coil',       exprRaw:'6!',    exprShow:'6 !',     baseCost:45000,        count:0, req:{n:['6'],      o:['!']},     flavor:'Numbers raised to new heights.'},
-    {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:37000000,     count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
-    {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:180000000,    count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
-    {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:25000000000,  count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
+    {id:'add',      name:'Adding Machine',   exprRaw:'1+1',   exprShow:'1 + 1',   baseCost:90,           count:0, req:{n:[],        o:[]},        flavor:'A single lever, tirelessly pulled.'},
+    {id:'abacus',   name:'Abacus Array',     exprRaw:'2+3',   exprShow:'2 + 3',   baseCost:640,          count:0, req:{n:['2','3'],  o:[]},        flavor:'Beads click in perfect rhythm.'},
+    {id:'slide',    name:'Slide Rule Engine',exprRaw:'4*3',   exprShow:'4 × 3',   baseCost:2550,         count:0, req:{n:['4','3'],  o:['*']},     flavor:'Logarithms, cranked by hand.'},
+    {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:7900,         count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
+    {id:'power',    name:'Power Coil',       exprRaw:'6!',    exprShow:'6 !',     baseCost:25000,        count:0, req:{n:['6'],      o:['!']},     flavor:'Numbers raised to new heights.'},
+    {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:6000000,      count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
+    {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:3100000000,   count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
+    {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:7900000000,   count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
   ];
 
   /* =========================================================

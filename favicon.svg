@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="case" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#403c36"/>
+      <stop offset="0.45" stop-color="#33302c"/>
+      <stop offset="1" stop-color="#242220"/>
+    </linearGradient>
+    <linearGradient id="lcd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c7d1a3"/>
+      <stop offset="1" stop-color="#b8c395"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="url(#case)"/>
+
+  <!-- LCD screen -->
+  <rect x="10" y="10" width="44" height="20" rx="3" fill="url(#lcd)"/>
+  <text x="48" y="26" text-anchor="end" font-family="'IBM Plex Mono', 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" fill="#2b3320">42</text>
+
+  <!-- keypad rows -->
+  <rect x="10" y="34" width="10.2" height="9" rx="2.4" fill="#55504a"/>
+  <rect x="22.6" y="34" width="10.2" height="9" rx="2.4" fill="#55504a"/>
+  <rect x="35.2" y="34" width="8.4" height="9" rx="2.4" fill="#c68a34"/>
+  <rect x="45.8" y="34" width="8.2" height="9" rx="2.4" fill="#83493f"/>
+
+  <rect x="10" y="46" width="10.2" height="9" rx="2.4" fill="#55504a"/>
+  <rect x="22.6" y="46" width="10.2" height="9" rx="2.4" fill="#55504a"/>
+  <rect x="35.2" y="46" width="8.4" height="9" rx="2.4" fill="#55504a"/>
+  <rect x="45.8" y="46" width="8.2" height="9" rx="2.4" fill="#5c7a4e"/>
+</svg>

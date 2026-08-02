@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1b1a19">
 <title>CALC-U-LATOR — Model CC-1</title>
 <meta name="description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
 
@@ -56,15 +57,29 @@
     font-size:16px;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0; height:100%; overflow:hidden; overscroll-behavior:none;}
+  html{
+    margin:0; padding:0; height:100%;
+    background:var(--bg-desk-1);
+    overflow:hidden; overscroll-behavior:none;
+  }
   body{
-    min-height:100vh;
+    margin:0; padding:0;
+    height:100vh; height:100dvh;
+    min-height:100vh; min-height:100dvh;
+    overflow:hidden; overscroll-behavior:none;
     background:
       radial-gradient(ellipse at 30% -10%, #35302a 0%, transparent 55%),
       linear-gradient(180deg, var(--bg-desk-1), var(--bg-desk-2));
     font-family:'IBM Plex Mono', monospace;
     color:var(--text-light);
-    padding:18px 14px 60px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
     -webkit-user-select:none;
     -moz-user-select:none;
     -ms-user-select:none;
@@ -73,7 +88,11 @@
   }
   h1,h2,h3{font-family:'Space Grotesk', sans-serif; margin:0;}
   button{font-family:inherit;}
-  .desk{max-width:1080px; margin:0 auto;}
+  .desk{
+    max-width:1080px; width:100%;
+    transform-origin:center center;
+    will-change:transform;
+  }
 
   /* ---------- Top bar ---------- */
   .topbar{
@@ -435,35 +454,73 @@
     </section>
   </div>
 
-  <!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->
-  <div class="modal-overlay" id="itemModal" aria-hidden="true">
-    <div class="modal-card">
-      <button class="modal-close" id="itemModalClose" aria-label="Close">✕</button>
-      <div class="modal-title" id="itemModalTitle">—</div>
-      <div class="modal-desc" id="itemModalDesc">—</div>
-      <div class="modal-cost-row">
-        <span class="modal-cost-label">Cost</span>
-        <span class="modal-cost" id="itemModalCost">0</span>
-      </div>
-      <button class="modal-buy-btn" id="itemModalBuy">BUY</button>
-    </div>
-  </div>
-
-  <!-- AUTO-SOLVERS MODAL (opens via the SOLVE key) -->
-  <div class="modal-overlay" id="solversModal" aria-hidden="true">
-    <div class="modal-card modal-card-wide">
-      <button class="modal-close" id="solversModalClose" aria-label="Close">✕</button>
-      <div class="modal-title">Auto‑Solvers</div>
-      <div class="modal-solvers-list" id="solversList"></div>
-    </div>
-  </div>
-
   <footer class="note">Progress auto-saves to this browser — close the tab any time and pick up where you left off.</footer>
+</div>
+
+<!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->
+<div class="modal-overlay" id="itemModal" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-close" id="itemModalClose" aria-label="Close">✕</button>
+    <div class="modal-title" id="itemModalTitle">—</div>
+    <div class="modal-desc" id="itemModalDesc">—</div>
+    <div class="modal-cost-row">
+      <span class="modal-cost-label">Cost</span>
+      <span class="modal-cost" id="itemModalCost">0</span>
+    </div>
+    <button class="modal-buy-btn" id="itemModalBuy">BUY</button>
+  </div>
+</div>
+
+<!-- AUTO-SOLVERS MODAL (opens via the SOLVE key) -->
+<div class="modal-overlay" id="solversModal" aria-hidden="true">
+  <div class="modal-card modal-card-wide">
+    <button class="modal-close" id="solversModalClose" aria-label="Close">✕</button>
+    <div class="modal-title">Auto‑Solvers</div>
+    <div class="modal-solvers-list" id="solversList"></div>
+  </div>
 </div>
 
 <script>
 (function(){
   "use strict";
+
+  /* =========================================================
+     FIT-TO-SCREEN SCALING
+     Measures the natural (unscaled) size of the whole layout and
+     shrinks it just enough to fit the available viewport, so every
+     element stays fully visible on any screen size/orientation.
+  ========================================================= */
+  const deskEl = document.querySelector('.desk');
+  let fitRAF = null;
+
+  function fitStage(){
+    if(!deskEl) return;
+    deskEl.style.transform = 'none';
+    const naturalW = deskEl.scrollWidth;
+    const naturalH = deskEl.scrollHeight;
+    const availW = document.body.clientWidth;
+    const availH = document.body.clientHeight;
+    if(naturalW <= 0 || naturalH <= 0 || availW <= 0 || availH <= 0) return;
+    let scale = Math.min(1, availW / naturalW, availH / naturalH);
+    if(!isFinite(scale) || scale <= 0) scale = 1;
+    deskEl.style.transform = 'scale(' + scale.toFixed(4) + ')';
+  }
+
+  function requestFit(){
+    if(fitRAF) cancelAnimationFrame(fitRAF);
+    fitRAF = requestAnimationFrame(fitStage);
+  }
+
+  window.addEventListener('resize', requestFit);
+  window.addEventListener('orientationchange', requestFit);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', requestFit);
+    window.visualViewport.addEventListener('scroll', requestFit);
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(requestFit).catch(function(){});
+  }
+  window.addEventListener('load', requestFit);
 
   /* =========================================================
      DISABLE PAGE SCROLLING
@@ -504,7 +561,7 @@
     {id:'abacus',   name:'Abacus Array',     exprRaw:'2+3',   exprShow:'2 + 3',   baseCost:60,           count:0, req:{n:['2','3'],  o:[]},        flavor:'Beads click in perfect rhythm.'},
     {id:'slide',    name:'Slide Rule Engine',exprRaw:'4*3',   exprShow:'4 × 3',   baseCost:216,          count:0, req:{n:['4','3'],  o:['*']},     flavor:'Logarithms, cranked by hand.'},
     {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:3000,         count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
-    {id:'power',    name:'Power Coil',       exprRaw:'6^4',   exprShow:'6 ^ 4',   baseCost:45000,        count:0, req:{n:['6','4'],  o:['^']},     flavor:'Numbers raised to new heights.'},
+    {id:'power',    name:'Power Coil',       exprRaw:'6!',    exprShow:'6 !',     baseCost:45000,        count:0, req:{n:['6'],      o:['!']},     flavor:'Numbers raised to new heights.'},
     {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:37000000,     count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
     {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:180000000,    count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
     {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:25000000000,  count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
@@ -1169,6 +1226,7 @@
   renderExpr();
   refreshAll();
   printTape(hadSave ? 'CC‑1 ONLINE. SAVE RESTORED.' : 'CC‑1 ONLINE. PRESS = TO BEGIN.', false);
+  requestFit();
 
 })();
 </script>

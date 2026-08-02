@@ -607,6 +607,16 @@
   /* =========================================================
      DATA
   ========================================================= */
+  // A tap evaluates (selectedDigit, selectedOperator) directly — see
+  // computeSelectedResult() — and every unlocked operator applies
+  // retroactively to every already-unlocked digit. That means Exponent was
+  // the same bug as the Quantum Solver building, but worse: at its old price
+  // (150,000) a single tap of an already-owned 7 (7^7 = 823,543) paid for the
+  // unlock 5x over — profit before the purchase animation finished. Digit 9
+  // had the identical problem once ^ was known (9^9 = 387,420,489 for a
+  // 280,000,000 digit). Exponent and digit 9 are repriced below so the
+  // biggest clicks in the game cost a real, deliberate grind instead of
+  // being an accidental first tap.
   const numbersData = [
     {digit:'2', cost:130},
     {digit:'3', cost:280},
@@ -615,25 +625,34 @@
     {digit:'6', cost:11600},
     {digit:'7', cost:53000},
     {digit:'8', cost:35000000},
-    {digit:'9', cost:280000000},
+    {digit:'9', cost:900000000},
     {digit:'0', cost:5400000000},
   ];
 
   const operatorsData = [
     {id:'*', symbol:'×', name:'Multiply', cost:1000, desc:'Unlocks × on the keypad.'},
     {id:'!', symbol:'!', name:'Factorial', cost:5000, desc:'Unlocks ! on the keypad.'},
-    {id:'^', symbol:'^', name:'Exponent', cost:150000, desc:'Unlocks ^ on the keypad.'},
+    {id:'^', symbol:'^', name:'Exponent', cost:1500000000, desc:'Unlocks ^ on the keypad.'},
   ];
 
+  // Costs below are tuned so baseCost/baseCps (the "payback" time of a single
+  // unit) increases at every tier — add < abacus < slide < forge < power <
+  // quantum < infinity < oracle. Previously the ^-powered buildings (quantum,
+  // oracle) were priced as if their output scaled linearly like the rest of
+  // the shop, so unlocking Exponent let you buy a 1,144x production jump
+  // (quantum: 823,543 cps) for only 240x the cost of the previous building —
+  // a payback of ~7 seconds that trivialized every purchase after it. Growth
+  // rates now also increase per tier, so stacking many of the strongest
+  // generators can't shortcut later tiers either.
   const buildingsData = [
-    {id:'add',      name:'Adding Machine',   exprRaw:'1+1',   exprShow:'1 + 1',   baseCost:90,           count:0, req:{n:[],        o:[]},        flavor:'A single lever, tirelessly pulled.'},
-    {id:'abacus',   name:'Abacus Array',     exprRaw:'2+3',   exprShow:'2 + 3',   baseCost:640,          count:0, req:{n:['2','3'],  o:[]},        flavor:'Beads click in perfect rhythm.'},
-    {id:'slide',    name:'Slide Rule Engine',exprRaw:'4*3',   exprShow:'4 × 3',   baseCost:2550,         count:0, req:{n:['4','3'],  o:['*']},     flavor:'Logarithms, cranked by hand.'},
-    {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:7900,         count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
-    {id:'power',    name:'Power Coil',       exprRaw:'6!',    exprShow:'6 !',     baseCost:25000,        count:0, req:{n:['6'],      o:['!']},     flavor:'Numbers raised to new heights.'},
-    {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:6000000,      count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
-    {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:3100000000,   count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
-    {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:7900000000,   count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
+    {id:'add',      name:'Adding Machine',   exprRaw:'1+1',   exprShow:'1 + 1',   baseCost:90,             growth:1.10, count:0, req:{n:[],        o:[]},        flavor:'A single lever, tirelessly pulled.'},
+    {id:'abacus',   name:'Abacus Array',     exprRaw:'2+3',   exprShow:'2 + 3',   baseCost:640,            growth:1.10, count:0, req:{n:['2','3'],  o:[]},        flavor:'Beads click in perfect rhythm.'},
+    {id:'slide',    name:'Slide Rule Engine',exprRaw:'4*3',   exprShow:'4 × 3',   baseCost:2550,           growth:1.10, count:0, req:{n:['4','3'],  o:['*']},     flavor:'Logarithms, cranked by hand.'},
+    {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:48000,          growth:1.11, count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
+    {id:'power',    name:'Power Coil',       exprRaw:'6!',    exprShow:'6 !',     baseCost:648000,         growth:1.11, count:0, req:{n:['6'],      o:['!']},     flavor:'Numbers raised to new heights.'},
+    {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:3000000000,     growth:1.12, count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
+    {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:35000000000,    growth:1.13, count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
+    {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:11000000000000, growth:1.14, count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
   ];
 
   /* =========================================================
@@ -901,7 +920,7 @@
            b.req.o.every(o => state.unlockedOperators.has(o));
   }
   function buildingCost(b){
-    return Math.ceil(b.baseCost * Math.pow(1.10, b.count));
+    return Math.ceil(b.baseCost * Math.pow(b.growth || 1.10, b.count));
   }
   function requirementText(b){
     const parts = [];

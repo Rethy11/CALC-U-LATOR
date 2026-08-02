@@ -532,6 +532,19 @@
   window.addEventListener('load', requestFit);
 
   /* =========================================================
+     DOUBLE-TAP-ZOOM BACKSTOP
+     touch-action alone is not 100% reliable against iOS Safari's
+     double-tap-zoom in practice (well-documented gap between spec and
+     real behavior). dblclick fires only *after* both taps' click events
+     have already completed, so blocking its default kills the zoom
+     without ever suppressing the clicks themselves — safe for a game
+     where rapid double/triple-tapping the same button is the whole point.
+  ========================================================= */
+  document.addEventListener('dblclick', function(e){
+    e.preventDefault();
+  }, {passive:false});
+
+  /* =========================================================
      DISABLE PAGE SCROLLING
   ========================================================= */
   const SCROLLABLE_SELECTOR = '.modal-card-wide, .lcd-expr';

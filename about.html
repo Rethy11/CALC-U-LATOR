@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — CALC-U-LATOR</title>
+<meta name="description" content="About Plasticine Games and CALC-U-LATOR, an idle clicker about unlocking a calculator.">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-desk-1:#1b1a19; --bg-desk-2:#26221e;
+    --case:#33302c; --case-hi:#403c36; --case-lo:#242220; --panel:#413c35;
+    --lcd-bg:#c7d1a3; --lcd-bg-dim:#b8c395; --lcd-text:#2b3320; --lcd-text-dim:#5c6a48;
+    --paper:#e7dfc7; --paper-ink:#3a3428;
+    --text-light:#eee6d6; --text-dim:#a99f8f;
+    --accent:#7fae5e; --key-op:#c68a34; --danger:#b0503f;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; min-height:100vh;
+    background:
+      radial-gradient(ellipse at 30% -10%, #35302a 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-desk-1), var(--bg-desk-2));
+    color:var(--text-light);
+    font-family:'IBM Plex Mono', monospace;
+    line-height:1.7;
+    padding:40px 16px 90px;
+  }
+  .page{ max-width:600px; margin:0 auto; }
+  .back-link{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    color:var(--text-light); text-decoration:none; font-size:0.78rem; letter-spacing:0.5px;
+    background:linear-gradient(160deg, var(--case-hi), var(--case) 60%, var(--case-lo));
+    border:1px solid #4a453d;
+    padding:10px 16px; border-radius:8px; margin-bottom:30px;
+    box-shadow:0 3px 0 rgba(0,0,0,0.4);
+  }
+  .back-link:hover, .back-link:focus-visible{ color:var(--accent); }
+  .lcd-title{
+    background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
+    border-radius:8px;
+    box-shadow:inset 0 2px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579;
+    padding:14px 18px 10px;
+    margin-bottom:26px;
+  }
+  .lcd-title .eyebrow{
+    font-family:'IBM Plex Mono'; font-size:0.65rem; letter-spacing:2px;
+    color:var(--lcd-text-dim); text-transform:uppercase;
+  }
+  .lcd-title h1{
+    font-family:'VT323', monospace; font-size:2.4rem; letter-spacing:1px;
+    color:var(--lcd-text); margin:2px 0 4px; line-height:1;
+  }
+  .lcd-title .sub{
+    font-family:'IBM Plex Mono'; font-size:0.68rem; color:var(--lcd-text-dim);
+  }
+  .doc-card{
+    background:var(--paper);
+    color:var(--paper-ink);
+    border-radius:10px;
+    padding:30px 26px 8px;
+    box-shadow:0 16px 34px -18px rgba(0,0,0,0.7);
+  }
+  .doc-card .lede{ font-family:'Space Grotesk'; font-weight:600; font-size:1.1rem; margin:0 0 16px; }
+  .doc-card h2{
+    font-family:'Space Grotesk'; font-weight:700; font-size:0.95rem;
+    color:#4a5f38; letter-spacing:0.2px;
+    margin:34px 0 12px; padding-bottom:6px;
+    border-bottom:2px dashed #c9bd9d;
+  }
+  .doc-card h2::before{ content:"> "; color:var(--key-op); }
+  .doc-card p{ margin:0 0 14px; font-size:0.95rem; }
+  .doc-card ul{ margin:0 0 14px; padding-left:22px; }
+  .doc-card li{ margin-bottom:7px; font-size:0.93rem; }
+  .doc-card a{ color:#4a5f38; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px; }
+  .doc-card a:hover, .doc-card a:focus-visible{ color:var(--key-op); }
+  .legal{ background:#ded2ab; border-radius:8px; padding:18px 20px; margin:24px 0 26px; }
+  .legal p{ font-size:0.85rem; color:#5a5140; margin:0 0 12px; }
+  .legal p:last-child{ margin-bottom:0; }
+  hr{ border:none; border-top:2px dashed #c9bd9d; margin:30px 0; }
+  .closing{ padding:20px 0 30px; font-size:0.93rem; color:var(--paper-ink); }
+  footer{
+    margin-top:44px; text-align:center; font-size:0.7rem; color:var(--text-dim);
+    font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:0.5px;
+    display:flex; gap:14px; justify-content:center; flex-wrap:wrap;
+  }
+  footer a{ color:var(--text-dim); text-decoration:none; }
+  footer a:hover, footer a:focus-visible{ color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back-link" href="index.html">&larr; Back to CALC-U-LATOR</a>
+
+  <div class="lcd-title">
+    <div class="eyebrow">CC-1 · MANUAL</div>
+    <h1>About</h1>
+    <div class="sub">Plasticine Games</div>
+  </div>
+
+  <div class="doc-card">
+    <p class="lede">Welcome!</p>
+
+    <p>Plasticine Games is a small independent game studio owned and operated by Shawn.Genji. What started as a hobby has grown into a passion project dedicated to making small, tactile games that are fun to fidget with &mdash; the kind of thing you open for &ldquo;just a minute&rdquo; and look up twenty minutes later.</p>
+    <p>Every game is designed, programmed, and maintained in my spare time. I care about the little details, so I put a lot of thought into responsive controls, satisfying feedback, handcrafted sound effects, and interfaces that feel good to poke at, even for something as ordinary as a calculator.</p>
+
+    <h2>About CALC-U-LATOR</h2>
+    <p>CALC-U-LATOR started from a silly thought: what if a calculator was actually powerful, but you had to earn every button on it?</p>
+    <p>The game hands you a busted old solar calculator, the &ldquo;CC-1,&rdquo; with almost nothing unlocked. You tap out what you can, print a little paper tape, and slowly buy your way into more digits, more operators, and eventually a squad of little Auto-Solvers that keep the LCD ticking up even while you&rsquo;re not looking.</p>
+    <p>It&rsquo;s an idle clicker at heart, but I wanted it to feel like a real desk object &mdash; warm case plastic, a slightly dim LCD, a tape unit that actually prints. No big story, no pressure, just a satisfying loop and a bigger number.</p>
+    <p>CALC-U-LATOR is still a work in progress. You may run into bugs, balance issues, or features still being sanded down. Every update brings fixes and new things to unlock as I keep chipping away at it.</p>
+    <p>If you give it a spin, thank you. I&rsquo;d genuinely love to hear what you think &mdash; feedback and bug reports directly shape where the game goes next.</p>
+
+    <h2>Looking Ahead</h2>
+    <p>CALC-U-LATOR is one of a few projects currently in motion at Plasticine Games, alongside Owldoku and other small experiments that prioritize creativity and craft over chasing trends.</p>
+    <p>As a solo independent developer, updates happen as time allows, but every project gets the same level of care.</p>
+
+    <h2>Your Privacy</h2>
+    <p>CALC-U-LATOR stores your progress locally on your own device using your browser&rsquo;s Local Storage &mdash; digits unlocked, tape history, score, and settings. Plasticine Games doesn&rsquo;t have access to this information, and it&rsquo;s never uploaded to any server.</p>
+    <p>The site may show ads through Google AdSense or similar providers, which may collect information under their own privacy policies. See the full <a href="privacy.html">Privacy Policy</a> for details.</p>
+
+    <h2>Contact</h2>
+    <p>Questions, bug reports, suggestions, or just want to say hi?</p>
+    <p>You can reach Plasticine Games on Instagram at <a href="https://www.instagram.com/plasticinegames" target="_blank" rel="noopener">@plasticinegames</a>.</p>
+
+    <hr>
+
+    <h2>Legal</h2>
+    <div class="legal">
+      <p>Plasticine Games is a sole proprietorship operating in the State of Tennessee, United States.</p>
+      <p>CALC-U-LATOR, Plasticine Games, and all associated artwork, code, sound effects, and original content are &copy; 2026 Shawn.Genji. All rights reserved unless otherwise stated.</p>
+      <p>CALC-U-LATOR is proprietary software. Portions of the source code may be publicly viewable through a GitHub repository, but public availability does not grant permission to copy, redistribute, modify, or commercially use the game or its assets except where an explicit license is provided.</p>
+      <p>Plasticine Games provides its games and website &ldquo;as is&rdquo; without warranties of any kind. To the fullest extent permitted by Tennessee and applicable United States law, Plasticine Games shall not be liable for any damages arising from the use of this website or its games.</p>
+      <p>This About page is provided for informational purposes and does not replace the <a href="privacy.html">Privacy Policy</a> or <a href="terms.html">Terms of Use</a>.</p>
+    </div>
+
+    <p class="closing">Thanks for stopping by Plasticine Games and giving CALC-U-LATOR a try. I hope mashing buttons on a calculator turns out to be more satisfying than it has any right to be.</p>
+  </div>
+
+  <footer>
+    <a href="index.html">CALC-U-LATOR</a> &bull; <a href="privacy.html">Privacy Policy</a> &bull; <a href="terms.html">Terms of Use</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>CALC-U-LATOR — Model CC-1</title>
+<meta name="description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
+
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="CALC-U-LATOR — Model CC-1">
+<meta property="og:description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CALC-U-LATOR — Model CC-1">
+<meta name="twitter:description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
+<meta name="twitter:image" content="og-image.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-desk-1:#1b1a19;
+    --bg-desk-2:#26221e;
+    --case:#33302c;
+    --case-hi:#403c36;
+    --case-lo:#242220;
+    --panel:#413c35;
+    --lcd-bg:#c7d1a3;
+    --lcd-bg-dim:#b8c395;
+    --lcd-text:#2b3320;
+    --lcd-text-dim:#5c6a48;
+    --key-num:#55504a;
+    --key-num-hi:#67615a;
+    --key-op:#c68a34;
+    --key-op-hi:#d89b42;
+    --key-eq:#5c7a4e;
+    --key-eq-hi:#6f8f5f;
+    --key-util:#83493f;
+    --key-util-hi:#96584d;
+    --paper:#e7dfc7;
+    --paper-ink:#3a3428;
+    --text-light:#eee6d6;
+    --text-dim:#a99f8f;
+    --accent:#7fae5e;
+    --danger:#b0503f;
+    --locked:#38352f;
+    --radius-case:22px;
+    --radius-key:10px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0; height:100%; overflow:hidden; overscroll-behavior:none;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 30% -10%, #35302a 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-desk-1), var(--bg-desk-2));
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--text-light);
+    padding:18px 14px 60px;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+    touch-action:none;
+  }
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; margin:0;}
+  button{font-family:inherit;}
+  .desk{max-width:1080px; margin:0 auto;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex; align-items:baseline; justify-content:space-between;
+    flex-wrap:wrap; gap:8px 16px;
+    padding:0 4px 16px;
+    border-bottom:1px solid #3a352e;
+    margin-bottom:18px;
+  }
+  .topbar h1{
+    font-size:1.4rem; letter-spacing:0.5px; color:var(--text-light);
+    display:flex; align-items:baseline; gap:10px;
+  }
+  .topbar .model{
+    font-family:'IBM Plex Mono', monospace; font-size:0.7rem; font-weight:500;
+    color:var(--text-dim); background:var(--panel); padding:3px 8px; border-radius:4px;
+    letter-spacing:1px;
+  }
+  .topbar .stats{display:flex; align-items:center; gap:14px; font-size:0.85rem; color:var(--text-dim);}
+  .topbar .stats b{color:var(--accent); font-weight:600;}
+  .power-led{
+    width:9px; height:9px; border-radius:50%; background:#4a4238; display:inline-block;
+    box-shadow:inset 0 0 2px #000;
+    transition:background .3s, box-shadow .3s;
+  }
+  .power-led.on{
+    background:#8fe06a;
+    box-shadow:0 0 6px 2px rgba(143,224,106,0.7), inset 0 0 2px #234a12;
+  }
+  .mute-btn{
+    background:none; border:1px solid #4a453d; color:var(--text-dim);
+    border-radius:6px; padding:4px 9px; font-size:0.85rem; cursor:pointer;
+  }
+  .mute-btn:hover{color:var(--text-light); border-color:var(--text-dim);}
+
+  /* ---------- Layout ---------- */
+  .layout{display:flex; justify-content:center;}
+  .device{width:100%; max-width:420px;}
+
+  /* ---------- Device ---------- */
+  .device-case{
+    background:linear-gradient(160deg, var(--case-hi), var(--case) 40%, var(--case-lo));
+    border-radius:var(--radius-case);
+    padding:16px 16px 20px;
+    box-shadow:0 20px 40px -18px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+    position:relative;
+  }
+  .brand-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:2px 6px 12px;
+  }
+  .brand-row .brand{font-family:'Space Grotesk'; font-weight:700; font-size:0.85rem; color:#cfc6b4; letter-spacing:1.5px;}
+  .brand-row .sub{font-size:0.62rem; color:var(--text-dim); letter-spacing:1px;}
+
+  /* Paper tape */
+  .tape-unit{
+    background:var(--case-lo);
+    border-radius:8px;
+    padding:6px 8px 0;
+    margin-bottom:12px;
+    box-shadow:inset 0 3px 8px rgba(0,0,0,0.6);
+  }
+  .tape-slot{
+    height:8px; background:#141312; border-radius:3px; margin-bottom:6px;
+  }
+  .tape{
+    height:86px; overflow:hidden; position:relative;
+    background:var(--paper);
+    border-radius:2px 2px 0 0;
+    padding:4px 8px;
+    display:flex; flex-direction:column-reverse;
+    font-size:0.68rem; color:var(--paper-ink); line-height:1.5;
+  }
+  .tape::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:14px;
+    background:linear-gradient(var(--paper), rgba(231,223,199,0));
+    pointer-events:none;
+  }
+  .tape-line{
+    white-space:nowrap; opacity:0.9; animation:printIn .35s ease-out;
+  }
+  .tape-line.you{color:#1f4d2e; font-weight:600;}
+  @keyframes printIn{ from{ transform:translateY(-6px); opacity:0;} to{ transform:translateY(0); opacity:0.9;} }
+
+  /* LCD */
+  .lcd{
+    background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
+    border-radius:8px;
+    padding:10px 14px 8px;
+    margin-bottom:14px;
+    box-shadow:inset 0 2px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579;
+    position:relative;
+    overflow:hidden;
+  }
+  .lcd-expr{
+    font-family:'VT323', monospace;
+    font-size:1.15rem;
+    color:var(--lcd-text-dim);
+    height:24px;
+    white-space:nowrap; overflow-x:auto;
+    text-align:right;
+    letter-spacing:1px;
+    scrollbar-width:none;
+    touch-action:pan-x;
+  }
+  .lcd-expr::-webkit-scrollbar{display:none;}
+  .lcd-score-row{
+    display:flex; justify-content:space-between; align-items:flex-end; gap:8px;
+  }
+  .lcd-score{
+    font-family:'VT323', monospace;
+    font-size:2.6rem; line-height:1;
+    color:var(--lcd-text);
+    text-shadow:0 0 8px rgba(43,51,32,0.35);
+    letter-spacing:1px;
+    white-space:nowrap; overflow:hidden; text-overflow:clip;
+  }
+  .lcd-cps{
+    font-family:'IBM Plex Mono'; font-size:0.65rem; color:var(--lcd-text-dim);
+    padding-bottom:6px; white-space:nowrap;
+  }
+  .lcd-hint{
+    font-family:'IBM Plex Mono'; font-size:0.62rem; color:var(--lcd-text-dim);
+    margin-top:2px; text-align:right; min-height:14px;
+  }
+  .float-gain{
+    position:absolute; right:14px; top:34px;
+    font-family:'VT323'; font-size:1.3rem; color:#3a4a26;
+    animation:floatUp .8s ease-out forwards;
+    pointer-events:none;
+  }
+  @keyframes floatUp{
+    0%{ opacity:1; transform:translateY(0);}
+    100%{ opacity:0; transform:translateY(-26px);}
+  }
+  .lcd.err .lcd-score{color:var(--danger);}
+
+  /* Keypad */
+  .keypad{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    grid-template-rows:repeat(5, 46px);
+    gap:8px;
+  }
+  .key{
+    border:none; border-radius:var(--radius-key);
+    font-family:'Space Grotesk'; font-weight:600; font-size:1.05rem;
+    color:var(--text-light);
+    cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+    transition:transform .06s, box-shadow .06s, filter .15s, opacity .15s;
+    position:relative;
+    user-select:none;
+  }
+  .key:active:not(:disabled){ transform:translateY(3px); box-shadow:0 0 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12); }
+  .key:disabled{ cursor:default; }
+  .key-num{ background:var(--key-num); grid-area:auto;}
+  .key-num:hover:not(:disabled){ background:var(--key-num-hi); }
+  .key-op{ background:var(--key-op); }
+  .key-op:hover:not(:disabled){ background:var(--key-op-hi); }
+  .key-eq{ background:var(--key-eq); font-size:1.3rem; }
+  .key-eq:hover:not(:disabled){ background:var(--key-eq-hi); }
+  .key-util{ background:var(--key-util); font-size:0.85rem; }
+  .key-util:hover:not(:disabled){ background:var(--key-util-hi); }
+  .key-util.afford{ background:#3c6a35; animation:solveGlow 1.1s ease-in-out infinite; }
+  .key-util.afford:hover{ background:#47793f; }
+  @keyframes solveGlow{
+    0%,100%{ box-shadow:0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12); }
+    50%{ box-shadow:0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 10px 2px rgba(127,174,94,0.7); }
+  }
+  .key.locked{ background:var(--locked) !important; color:var(--text-light); box-shadow:0 3px 0 rgba(0,0,0,0.3); }
+  .key.locked.no-afford{ background:#63332e !important; }
+  .key.locked.no-afford:hover{ background:#6f3a34 !important; }
+  .key.locked.afford{ background:#3c6a35 !important; }
+  .key.locked.afford:hover{ background:#47793f !important; }
+  .key.locked::after{
+    content:"\1F512"; position:absolute; top:3px; right:5px; font-size:0.6rem; opacity:0.7;
+  }
+  .key.selected{
+    background:#3c6a35 !important;
+    transform:translateY(3px);
+    box-shadow:0 0 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 2px var(--accent);
+    filter:brightness(1.12);
+  }
+  .key.selected:hover:not(:disabled){ background:#47793f !important; }
+  .btn-c{ grid-column:1 / span 2; grid-row:1; font-size:0.8rem; letter-spacing:1px; }
+  .btn-fact{ grid-column:4; grid-row:1; }
+  .btn-pow{ grid-column:3; grid-row:1; }
+  .btn-7{ grid-column:1; grid-row:2; }
+  .btn-8{ grid-column:2; grid-row:2; }
+  .btn-9{ grid-column:3; grid-row:2; }
+  .btn-mul{ grid-column:4; grid-row:2; }
+  .btn-4{ grid-column:1; grid-row:3; }
+  .btn-5{ grid-column:2; grid-row:3; }
+  .btn-6{ grid-column:3; grid-row:3; }
+  .btn-plus{ grid-column:4; grid-row:3; }
+  .btn-1{ grid-column:1; grid-row:4; }
+  .btn-2{ grid-column:2; grid-row:4; }
+  .btn-3{ grid-column:3; grid-row:4; }
+  .btn-eq{ grid-column:4; grid-row:4 / span 2; }
+  .btn-0{ grid-column:1 / span 2; grid-row:5; }
+  .btn-chip{
+    grid-column:3; grid-row:5;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk'; font-size:0.6rem; color:#6b6459;
+    letter-spacing:1px; background:var(--case-lo); border-radius:8px;
+  }
+
+  /* ---------- Modals ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(10,9,8,0.72);
+    align-items:center; justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-card{
+    position:relative;
+    background:linear-gradient(160deg, var(--case-hi), var(--case) 40%, var(--case-lo));
+    border-radius:16px;
+    padding:24px 20px 20px;
+    max-width:320px; width:100%;
+    box-shadow:0 24px 48px -16px rgba(0,0,0,0.8);
+  }
+  .modal-card-wide{ max-width:440px; max-height:78vh; overflow-y:auto; touch-action:pan-y; }
+  .modal-close{
+    position:absolute; top:12px; right:12px;
+    width:28px; height:28px; border-radius:50%;
+    background:var(--panel); color:var(--text-light); border:none;
+    font-size:0.85rem; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-close:hover{ background:var(--key-util); }
+  .modal-title{
+    font-family:'Space Grotesk'; font-weight:700; font-size:1.15rem;
+    color:var(--text-light); margin:0 26px 6px 0;
+  }
+  .modal-desc{ font-size:0.8rem; color:var(--text-dim); margin-bottom:16px; line-height:1.4; }
+  .modal-cost-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--case-lo); border-radius:10px; padding:10px 14px; margin-bottom:16px;
+  }
+  .modal-cost-label{ font-size:0.68rem; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; }
+  .modal-cost{
+    font-family:'VT323', monospace; font-size:1.7rem; color:var(--lcd-text);
+    background:var(--lcd-bg); padding:1px 10px; border-radius:6px;
+  }
+  .modal-buy-btn{
+    width:100%;
+    background:var(--accent); color:#1c2a12; border:none; border-radius:10px;
+    padding:12px; font-family:'Space Grotesk'; font-weight:700; font-size:0.95rem;
+    letter-spacing:0.5px; cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.3);
+  }
+  .modal-buy-btn:active:not(:disabled){ transform:translateY(2px); box-shadow:none; }
+  .modal-buy-btn:disabled{ background:#4a4a42; color:#8a8578; cursor:not-allowed; box-shadow:none; }
+  .modal-solvers-list{ display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+
+  .shop-item{
+    background:var(--case);
+    border:1px solid #423d35;
+    border-radius:12px;
+    padding:12px 14px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:4px 12px;
+    align-items:center;
+  }
+  .shop-item.locked{ opacity:0.55; }
+  .item-name{ font-family:'Space Grotesk'; font-weight:600; font-size:0.95rem; color:var(--text-light); }
+  .item-flavor{ grid-column:1 / -1; font-size:0.68rem; color:#8b8272; font-style:italic; }
+  .item-req{ grid-column:1; font-size:0.68rem; color:var(--danger); }
+  .buy-btn{
+    grid-row:1 / 3;
+    background:var(--accent); color:#1c2a12; border:none; border-radius:8px;
+    padding:8px 14px; font-family:'IBM Plex Mono'; font-weight:600; font-size:0.78rem;
+    cursor:pointer; white-space:nowrap; min-width:92px;
+    box-shadow:0 2px 0 rgba(0,0,0,0.25);
+  }
+  .buy-btn:active:not(:disabled){ transform:translateY(2px); box-shadow:none; }
+  .buy-btn:disabled{ background:#4a4a42; color:#8a8578; cursor:not-allowed; }
+  .buy-btn .cost{ display:block; font-size:0.9rem; }
+  .buy-btn .label{ display:block; font-size:0.6rem; opacity:0.8; letter-spacing:0.5px; }
+  .count-badge{
+    font-size:0.68rem; color:var(--text-dim); grid-column:1;
+  }
+
+  footer.note{
+    text-align:center; color:#5f594d; font-size:0.68rem; margin-top:26px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="desk">
+
+  <div class="topbar">
+    <h1>CALC‑U‑LATOR <span class="model">MODEL CC‑1</span></h1>
+    <div class="stats">
+      <span><span class="power-led" id="powerLed"></span> AUTO</span>
+      <span><b id="cpsReadout">+0</b>/sec</span>
+      <button class="mute-btn" id="muteBtn" title="Toggle sound" aria-label="Toggle sound">🔊</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- CALCULATOR DEVICE -->
+    <section class="device">
+      <div class="device-case">
+        <div class="brand-row">
+          <span class="brand">CC‑1</span>
+          <span class="sub">SOLAR&nbsp;POWERED&nbsp;·&nbsp;EST. YOU</span>
+        </div>
+
+        <div class="tape-unit">
+          <div class="tape-slot"></div>
+          <div class="tape" id="tape" aria-live="polite"></div>
+        </div>
+
+        <div class="lcd" id="lcd">
+          <div class="lcd-expr" id="lcdExpr">&nbsp;</div>
+          <div class="lcd-score-row">
+            <span class="lcd-cps" id="lcdCps">&nbsp;</span>
+            <span class="lcd-score" id="lcdScore">0</span>
+          </div>
+          <div class="lcd-hint" id="lcdHint">pick a digit &amp; a symbol, then mash =</div>
+        </div>
+
+        <div class="keypad" id="keypad">
+          <button class="key key-util btn-c" data-action="solvers" aria-label="Open Auto-Solvers">SOLVE</button>
+          <button class="key key-op btn-fact locked" data-value="!" aria-label="Factorial">!</button>
+          <button class="key key-op btn-pow locked" data-value="^" aria-label="Exponent">^</button>
+
+          <button class="key key-num btn-7 locked" data-value="7">7</button>
+          <button class="key key-num btn-8 locked" data-value="8">8</button>
+          <button class="key key-num btn-9 locked" data-value="9">9</button>
+          <button class="key key-op btn-mul locked" data-value="*" aria-label="Multiply">×</button>
+
+          <button class="key key-num btn-4 locked" data-value="4">4</button>
+          <button class="key key-num btn-5 locked" data-value="5">5</button>
+          <button class="key key-num btn-6 locked" data-value="6">6</button>
+          <button class="key key-op btn-plus" data-value="+" aria-label="Plus">+</button>
+
+          <button class="key key-num btn-1" data-value="1">1</button>
+          <button class="key key-num btn-2 locked" data-value="2">2</button>
+          <button class="key key-num btn-3 locked" data-value="3">3</button>
+          <button class="key key-eq btn-eq" data-action="equals" aria-label="Equals">=</button>
+
+          <button class="key key-num btn-0 locked" data-value="0">0</button>
+          <div class="btn-chip">MEM</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->
+  <div class="modal-overlay" id="itemModal" aria-hidden="true">
+    <div class="modal-card">
+      <button class="modal-close" id="itemModalClose" aria-label="Close">✕</button>
+      <div class="modal-title" id="itemModalTitle">—</div>
+      <div class="modal-desc" id="itemModalDesc">—</div>
+      <div class="modal-cost-row">
+        <span class="modal-cost-label">Cost</span>
+        <span class="modal-cost" id="itemModalCost">0</span>
+      </div>
+      <button class="modal-buy-btn" id="itemModalBuy">BUY</button>
+    </div>
+  </div>
+
+  <!-- AUTO-SOLVERS MODAL (opens via the SOLVE key) -->
+  <div class="modal-overlay" id="solversModal" aria-hidden="true">
+    <div class="modal-card modal-card-wide">
+      <button class="modal-close" id="solversModalClose" aria-label="Close">✕</button>
+      <div class="modal-title">Auto‑Solvers</div>
+      <div class="modal-solvers-list" id="solversList"></div>
+    </div>
+  </div>
+
+  <footer class="note">Progress auto-saves to this browser — close the tab any time and pick up where you left off.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================
+     DISABLE PAGE SCROLLING
+  ========================================================= */
+  const SCROLLABLE_SELECTOR = '.modal-card-wide, .lcd-expr';
+  document.addEventListener('touchmove', function(e){
+    if(e.target.closest(SCROLLABLE_SELECTOR)) return;
+    e.preventDefault();
+  }, {passive:false});
+  document.addEventListener('wheel', function(e){
+    if(e.target.closest(SCROLLABLE_SELECTOR)) return;
+    e.preventDefault();
+  }, {passive:false});
+
+  /* =========================================================
+     DATA
+  ========================================================= */
+  const numbersData = [
+    {digit:'2', cost:120},
+    {digit:'3', cost:480},
+    {digit:'4', cost:2200},
+    {digit:'5', cost:9000},
+    {digit:'6', cost:42000},
+    {digit:'7', cost:100000000},
+    {digit:'8', cost:700000000},
+    {digit:'9', cost:25000000000},
+    {digit:'0', cost:150000000000},
+  ];
+
+  const operatorsData = [
+    {id:'*', symbol:'×', name:'Multiply', cost:600, desc:'Unlocks × on the keypad.'},
+    {id:'!', symbol:'!', name:'Factorial', cost:15000, desc:'Unlocks ! on the keypad.'},
+    {id:'^', symbol:'^', name:'Exponent', cost:40000000, desc:'Unlocks ^ on the keypad.'},
+  ];
+
+  const buildingsData = [
+    {id:'add',      name:'Adding Machine',   exprRaw:'1+1',   exprShow:'1 + 1',   baseCost:16,           count:0, req:{n:[],        o:[]},        flavor:'A single lever, tirelessly pulled.'},
+    {id:'abacus',   name:'Abacus Array',     exprRaw:'2+3',   exprShow:'2 + 3',   baseCost:60,           count:0, req:{n:['2','3'],  o:[]},        flavor:'Beads click in perfect rhythm.'},
+    {id:'slide',    name:'Slide Rule Engine',exprRaw:'4*3',   exprShow:'4 × 3',   baseCost:216,          count:0, req:{n:['4','3'],  o:['*']},     flavor:'Logarithms, cranked by hand.'},
+    {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:3000,         count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
+    {id:'power',    name:'Power Coil',       exprRaw:'6^4',   exprShow:'6 ^ 4',   baseCost:45000,        count:0, req:{n:['6','4'],  o:['^']},     flavor:'Numbers raised to new heights.'},
+    {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:37000000,     count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
+    {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:180000000,    count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
+    {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:25000000000,  count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
+  ];
+
+  /* =========================================================
+     STATE
+  ========================================================= */
+  const state = {
+    score:0,
+    selectedDigit:'1',
+    selectedOperator:'+',
+    unlockedNumbers:new Set(['1']),
+    unlockedOperators:new Set(['+']),
+    everBought:false,
+    everClicked:false,
+    muted:false,
+  };
+
+  /* =========================================================
+     SAVE / LOAD (localStorage)
+  ========================================================= */
+  const SAVE_KEY = 'calcClicker.save.v1';
+
+  function saveState(){
+    try{
+      const payload = {
+        score: state.score,
+        selectedDigit: state.selectedDigit,
+        selectedOperator: state.selectedOperator,
+        unlockedNumbers: Array.from(state.unlockedNumbers),
+        unlockedOperators: Array.from(state.unlockedOperators),
+        everBought: state.everBought,
+        everClicked: state.everClicked,
+        muted: state.muted,
+        buildings: buildingsData.map(b => ({id:b.id, count:b.count})),
+        savedAt: Date.now(),
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    }catch(e){ /* storage unavailable or full — fail silently */ }
+  }
+
+  function loadState(){
+    let raw;
+    try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){ return; }
+    if(!raw) return;
+    let data;
+    try{ data = JSON.parse(raw); }catch(e){ return; }
+    if(!data || typeof data !== 'object') return;
+
+    if(typeof data.score === 'number' && isFinite(data.score)) state.score = data.score;
+    if(typeof data.selectedDigit === 'string') state.selectedDigit = data.selectedDigit;
+    if(typeof data.selectedOperator === 'string') state.selectedOperator = data.selectedOperator;
+    if(Array.isArray(data.unlockedNumbers)) state.unlockedNumbers = new Set(data.unlockedNumbers);
+    if(Array.isArray(data.unlockedOperators)) state.unlockedOperators = new Set(data.unlockedOperators);
+    if(typeof data.everBought === 'boolean') state.everBought = data.everBought;
+    if(typeof data.everClicked === 'boolean') state.everClicked = data.everClicked;
+    if(typeof data.muted === 'boolean') state.muted = data.muted;
+
+    if(Array.isArray(data.buildings)){
+      data.buildings.forEach(saved=>{
+        const def = buildingsData.find(b => b.id === saved.id);
+        if(def && typeof saved.count === 'number' && isFinite(saved.count) && saved.count >= 0){
+          def.count = saved.count;
+        }
+      });
+    }
+  }
+
+  /* =========================================================
+     MATH: tokenizer + recursive-descent parser
+     precedence (low->high):  +   *   ^ (right-assoc)   ! (postfix)
+  ========================================================= */
+  function tokenize(str){
+    const tokens = [];
+    let i = 0;
+    while(i < str.length){
+      const c = str[i];
+      if(/[0-9]/.test(c)){
+        let j = i;
+        while(j < str.length && /[0-9]/.test(str[j])) j++;
+        tokens.push({type:'num', value:parseFloat(str.slice(i,j))});
+        i = j;
+      } else if('+*^!'.indexOf(c) !== -1){
+        tokens.push({type:'op', value:c});
+        i++;
+      } else {
+        i++; // ignore anything unexpected
+      }
+    }
+    return tokens;
+  }
+
+  function factorial(n){
+    n = Math.floor(n);
+    if(n < 0) return NaN;
+    if(n > 1000) return Infinity;
+    let result = 1;
+    for(let k = 2; k <= n; k++){
+      result *= k;
+      if(!isFinite(result)) return Infinity;
+    }
+    return result;
+  }
+
+  function makeParser(tokens){
+    let pos = 0;
+    const peek = () => tokens[pos];
+    const next = () => tokens[pos++];
+
+    function parseAtom(){
+      const t = next();
+      if(!t || t.type !== 'num') throw new Error('parse error');
+      return t.value;
+    }
+    function parseFactorial(){
+      let val = parseAtom();
+      while(peek() && peek().type === 'op' && peek().value === '!'){
+        next();
+        val = factorial(val);
+      }
+      return val;
+    }
+    function parsePower(){
+      const base = parseFactorial();
+      if(peek() && peek().type === 'op' && peek().value === '^'){
+        next();
+        const exp = parsePower(); // right-associative
+        return Math.pow(base, exp);
+      }
+      return base;
+    }
+    function parseTerm(){
+      let left = parsePower();
+      while(peek() && peek().type === 'op' && peek().value === '*'){
+        next();
+        left = left * parsePower();
+      }
+      return left;
+    }
+    function parseExpr(){
+      let left = parseTerm();
+      while(peek() && peek().type === 'op' && peek().value === '+'){
+        next();
+        left = left + parseTerm();
+      }
+      return left;
+    }
+    return {
+      run(){
+        const val = parseExpr();
+        if(pos !== tokens.length) throw new Error('trailing tokens');
+        return val;
+      }
+    };
+  }
+
+  function evaluateExpression(str){
+    const tokens = tokenize(str);
+    if(tokens.length === 0) throw new Error('empty');
+    return makeParser(tokens).run();
+  }
+
+  // pre-compute building production values once — baseCps is DERIVED from the
+  // equation itself, so the displayed equation and its output can never drift apart.
+  buildingsData.forEach(b => {
+    b.value = evaluateExpression(b.exprRaw);
+    b.baseCps = b.value;
+  });
+
+  /* =========================================================
+     FORMATTING
+  ========================================================= */
+  const SUFFIXES = ['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc'];
+  function formatCompact(n){
+    if(Number.isNaN(n)) return 'ERR';
+    if(!isFinite(n)) return n > 0 ? '∞' : '-∞';
+    const neg = n < 0; n = Math.abs(n);
+    if(n < 1000) return (neg?'-':'') + (Number.isInteger(n) ? String(n) : n.toFixed(2));
+    let tier = Math.floor(Math.log10(n) / 3);
+    tier = Math.min(tier, SUFFIXES.length - 1);
+    const scaled = n / Math.pow(10, tier*3);
+    return (neg?'-':'') + scaled.toFixed(scaled < 10 ? 2 : 1) + SUFFIXES[tier];
+  }
+  function formatScoreMain(n){
+    if(Number.isNaN(n)) return 'ERR';
+    if(!isFinite(n)) return 'E';
+    n = Math.floor(Math.max(n,0));
+    if(n < 1e6) return n.toLocaleString('en-US');
+    return formatCompact(n);
+  }
+
+
+  /* =========================================================
+     SOUND (tiny WebAudio beeps, no assets)
+  ========================================================= */
+  let actx = null;
+  function beep(freq, dur, vol){
+    if(state.muted) return;
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      gain.gain.value = vol;
+      osc.connect(gain).connect(actx.destination);
+      const now = actx.currentTime;
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      osc.start(now);
+      osc.stop(now + dur);
+    }catch(e){ /* audio unavailable, ignore */ }
+  }
+
+  /* =========================================================
+     DOM REFS
+  ========================================================= */
+  const lcdExprEl = document.getElementById('lcdExpr');
+  const lcdScoreEl = document.getElementById('lcdScore');
+  const lcdCpsEl = document.getElementById('lcdCps');
+  const lcdHintEl = document.getElementById('lcdHint');
+  const lcdEl = document.getElementById('lcd');
+  const tapeEl = document.getElementById('tape');
+  const cpsReadoutEl = document.getElementById('cpsReadout');
+  const powerLedEl = document.getElementById('powerLed');
+  const muteBtn = document.getElementById('muteBtn');
+  const keypadEl = document.getElementById('keypad');
+  const solveBtnEl = document.getElementById('keypad').querySelector('.btn-c');
+
+  const itemModalEl = document.getElementById('itemModal');
+  const itemModalTitleEl = document.getElementById('itemModalTitle');
+  const itemModalDescEl = document.getElementById('itemModalDesc');
+  const itemModalCostEl = document.getElementById('itemModalCost');
+  const itemModalBuyBtn = document.getElementById('itemModalBuy');
+  const itemModalCloseBtn = document.getElementById('itemModalClose');
+
+  const solversModalEl = document.getElementById('solversModal');
+  const solversListEl = document.getElementById('solversList');
+  const solversModalCloseBtn = document.getElementById('solversModalClose');
+
+  /* =========================================================
+     TAPE LOG
+  ========================================================= */
+  const MAX_TAPE_LINES = 30;
+  function printTape(text, isYou){
+    const line = document.createElement('div');
+    line.className = 'tape-line' + (isYou ? ' you' : '');
+    line.textContent = text;
+    tapeEl.insertBefore(line, tapeEl.firstChild);
+    while(tapeEl.children.length > MAX_TAPE_LINES){
+      tapeEl.removeChild(tapeEl.lastChild);
+    }
+  }
+
+  /* =========================================================
+     TOTAL CPS
+  ========================================================= */
+  function totalCps(){
+    return buildingsData.reduce((sum,b) => sum + b.count * b.baseCps, 0);
+  }
+
+  /* =========================================================
+     REQUIREMENTS / COSTS
+  ========================================================= */
+  function buildingUnlocked(b){
+    return b.req.n.every(d => state.unlockedNumbers.has(d)) &&
+           b.req.o.every(o => state.unlockedOperators.has(o));
+  }
+  function buildingCost(b){
+    return Math.ceil(b.baseCost * Math.pow(1.10, b.count));
+  }
+  function requirementText(b){
+    const parts = [];
+    if(b.req.n.length) parts.push('digits ' + b.req.n.join(', '));
+    if(b.req.o.length){
+      const names = b.req.o.map(o => operatorsData.find(od=>od.id===o).symbol);
+      parts.push(names.join(' ') + ' unlocked');
+    }
+    return 'Requires ' + parts.join(' & ');
+  }
+
+  /* =========================================================
+     RENDER: LCD + keypad locks
+  ========================================================= */
+  function renderScore(){
+    lcdScoreEl.textContent = formatScoreMain(state.score);
+    lcdEl.classList.toggle('err', !isFinite(state.score) && Number.isNaN(state.score));
+    const cps = totalCps();
+    lcdCpsEl.textContent = cps > 0 ? ('+' + formatCompact(cps) + '/s') : '';
+    cpsReadoutEl.textContent = '+' + formatCompact(cps);
+    powerLedEl.classList.toggle('on', cps > 0);
+  }
+
+  const OP_SYMBOL = {'+':'+', '*':'×', '^':'^', '!':'!'};
+
+  function currentExprDisplay(){
+    const d = state.selectedDigit;
+    const sym = OP_SYMBOL[state.selectedOperator];
+    if(state.selectedOperator === '!') return d + ' !';
+    return d + ' ' + sym + ' ' + d;
+  }
+
+  function computeSelectedResult(){
+    const d = parseInt(state.selectedDigit, 10);
+    switch(state.selectedOperator){
+      case '+': return d + d;
+      case '*': return d * d;
+      case '^': return Math.pow(d, d);
+      case '!': return factorial(d);
+      default:  return d + d;
+    }
+  }
+
+  function renderExpr(){
+    lcdExprEl.textContent = currentExprDisplay();
+    lcdExprEl.scrollLeft = 0;
+    lcdHintEl.style.visibility = state.everClicked ? 'hidden' : 'visible';
+  }
+
+  function updateKeypadLocks(){
+    ['2','3','4','5','6','7','8','9','0'].forEach(d=>{
+      const btn = keypadEl.querySelector('.btn-' + d);
+      if(!btn) return;
+      const unlocked = state.unlockedNumbers.has(d);
+      btn.classList.toggle('locked', !unlocked);
+    });
+    const opMap = {'*':'.btn-mul', '^':'.btn-pow', '!':'.btn-fact'};
+    Object.keys(opMap).forEach(op=>{
+      const btn = keypadEl.querySelector(opMap[op]);
+      const unlocked = state.unlockedOperators.has(op);
+      btn.classList.toggle('locked', !unlocked);
+    });
+    refreshKeypadAfford();
+    renderSelection();
+  }
+
+  function anySolverAffordable(){
+    return buildingsData.some(def => buildingUnlocked(def) && state.score >= buildingCost(def));
+  }
+
+  function refreshSolveButton(){
+    if(!solveBtnEl) return;
+    solveBtnEl.classList.toggle('afford', anySolverAffordable());
+  }
+
+  function refreshKeypadAfford(){
+    refreshSolveButton();
+    numbersData.forEach(def=>{
+      const btn = keypadEl.querySelector('.btn-' + def.digit);
+      if(!btn) return;
+      if(state.unlockedNumbers.has(def.digit)){
+        btn.classList.remove('afford','no-afford');
+        return;
+      }
+      const can = state.score >= def.cost;
+      btn.classList.toggle('afford', can);
+      btn.classList.toggle('no-afford', !can);
+    });
+    const opMap = {'*':'.btn-mul', '^':'.btn-pow', '!':'.btn-fact'};
+    operatorsData.forEach(def=>{
+      const btn = keypadEl.querySelector(opMap[def.id]);
+      if(!btn) return;
+      if(state.unlockedOperators.has(def.id)){
+        btn.classList.remove('afford','no-afford');
+        return;
+      }
+      const can = state.score >= def.cost;
+      btn.classList.toggle('afford', can);
+      btn.classList.toggle('no-afford', !can);
+    });
+  }
+
+  function renderSelection(){
+    ['1','2','3','4','5','6','7','8','9','0'].forEach(d=>{
+      const btn = keypadEl.querySelector('.btn-' + d);
+      if(btn) btn.classList.toggle('selected', state.selectedDigit === d);
+    });
+    const opMap = {'+':'.btn-plus', '*':'.btn-mul', '^':'.btn-pow', '!':'.btn-fact'};
+    Object.keys(opMap).forEach(op=>{
+      const btn = keypadEl.querySelector(opMap[op]);
+      if(btn) btn.classList.toggle('selected', state.selectedOperator === op);
+    });
+  }
+
+  /* =========================================================
+     SELECTION + CALCULATION INPUT
+  ========================================================= */
+  function selectDigit(d){
+    state.selectedDigit = d;
+    renderSelection();
+    renderExpr();
+    beep(520, 0.04, 0.03);
+  }
+  function selectOperator(op){
+    state.selectedOperator = op;
+    renderSelection();
+    renderExpr();
+    beep(560, 0.04, 0.03);
+  }
+  function showGain(amount){
+    const el = document.createElement('div');
+    el.className = 'float-gain';
+    el.textContent = '+' + formatCompact(amount);
+    lcdEl.appendChild(el);
+    setTimeout(()=> el.remove(), 850);
+  }
+  function doEquals(){
+    const raw = currentExprDisplay();
+    const result = computeSelectedResult();
+    if(Number.isNaN(result) || !isFinite(result)){
+      return; // single-digit inputs can't actually produce this, but stay safe
+    }
+    state.score += result;
+    state.everBought = true;
+    state.everClicked = true;
+    showGain(result);
+    printTape('YOU   ' + raw + ' = ' + formatCompact(result), true);
+    beep(700, 0.06, 0.05);
+    renderExpr();
+    renderScore();
+    saveState();
+  }
+
+  keypadEl.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const action = btn.dataset.action;
+    const value = btn.dataset.value;
+    if(action === 'solvers'){ openSolversModal(); return; }
+    if(action === 'equals'){ doEquals(); return; }
+    if(value === undefined) return;
+    const isDigit = '0123456789'.indexOf(value) !== -1;
+    if(isDigit){
+      if(state.unlockedNumbers.has(value)) selectDigit(value);
+      else openItemModal('digit', value);
+    } else {
+      if(state.unlockedOperators.has(value)) selectOperator(value);
+      else openItemModal('operator', value);
+    }
+  });
+
+  /* =========================================================
+     ITEM PURCHASE MODAL (digits & operators)
+  ========================================================= */
+  let modalTarget = null; // {type:'digit'|'operator', id}
+
+  function openItemModal(type, id){
+    modalTarget = {type, id};
+    let title, desc, cost;
+    if(type === 'digit'){
+      const def = numbersData.find(d => d.digit === id);
+      title = 'Digit ' + def.digit;
+      desc = 'Adds ' + def.digit + ' to the keypad.';
+      cost = def.cost;
+    } else {
+      const def = operatorsData.find(d => d.id === id);
+      title = def.name + ' ' + def.symbol;
+      desc = def.desc;
+      cost = def.cost;
+    }
+    itemModalTitleEl.textContent = title;
+    itemModalDescEl.textContent = desc;
+    itemModalCostEl.textContent = formatCompact(cost);
+    itemModalBuyBtn.disabled = state.score < cost;
+    itemModalEl.classList.add('open');
+    itemModalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeItemModal(){
+    itemModalEl.classList.remove('open');
+    itemModalEl.setAttribute('aria-hidden', 'true');
+    modalTarget = null;
+  }
+
+  function refreshItemModalIfOpen(){
+    if(!modalTarget) return;
+    const cost = modalTarget.type === 'digit'
+      ? numbersData.find(d => d.digit === modalTarget.id).cost
+      : operatorsData.find(d => d.id === modalTarget.id).cost;
+    itemModalBuyBtn.disabled = state.score < cost;
+  }
+
+  function purchaseModalTarget(){
+    const t = modalTarget;
+    if(!t) return;
+    if(t.type === 'digit'){
+      const def = numbersData.find(d => d.digit === t.id);
+      if(!def || state.unlockedNumbers.has(def.digit) || state.score < def.cost) return;
+      state.score -= def.cost;
+      state.unlockedNumbers.add(def.digit);
+      printTape('SHOP  unlocked digit ' + def.digit, false);
+    } else {
+      const def = operatorsData.find(d => d.id === t.id);
+      if(!def || state.unlockedOperators.has(def.id) || state.score < def.cost) return;
+      state.score -= def.cost;
+      state.unlockedOperators.add(def.id);
+      printTape('SHOP  unlocked ' + def.name, false);
+    }
+    state.everBought = true;
+    beep(880, 0.08, 0.06);
+    updateKeypadLocks();
+    refreshAll();
+    closeItemModal();
+    saveState();
+  }
+
+  itemModalBuyBtn.addEventListener('click', purchaseModalTarget);
+  itemModalCloseBtn.addEventListener('click', closeItemModal);
+  itemModalEl.addEventListener('click', (e)=>{ if(e.target === itemModalEl) closeItemModal(); });
+
+  /* =========================================================
+     AUTO-SOLVERS MODAL
+  ========================================================= */
+  let solversModalOpen = false;
+
+  function openSolversModal(){
+    solversModalOpen = true;
+    refreshBuildingsList();
+    solversModalEl.classList.add('open');
+    solversModalEl.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSolversModal(){
+    solversModalOpen = false;
+    solversModalEl.classList.remove('open');
+    solversModalEl.setAttribute('aria-hidden', 'true');
+  }
+
+  solversModalCloseBtn.addEventListener('click', closeSolversModal);
+  solversModalEl.addEventListener('click', (e)=>{ if(e.target === solversModalEl) closeSolversModal(); });
+
+  /* =========================================================
+     SOLVERS LIST: build once, update incrementally
+  ========================================================= */
+  function buildBuildingRow(def){
+    const row = document.createElement('div');
+    row.className = 'shop-item';
+    row.innerHTML =
+      '<div class="item-name">' + def.name + '</div>' +
+      '<div class="count-badge">owned: <span class="cnt">0</span> · ' + def.exprShow + ' = ' + formatCompact(def.value) + ' each sec</div>' +
+      '<div class="item-flavor">' + def.flavor + '</div>' +
+      '<button class="buy-btn"><span class="cost">0</span><span class="label">BUY</span></button>';
+    const buyBtn = row.querySelector('.buy-btn');
+    buyBtn.addEventListener('click', ()=>{
+      if(!buildingUnlocked(def)) return;
+      const cost = buildingCost(def);
+      if(state.score < cost) return;
+      state.score -= cost;
+      def.count++;
+      state.everBought = true;
+      printTape(def.name.toUpperCase() + '  now × ' + def.count, false);
+      beep(660, 0.05, 0.04);
+      refreshAll();
+      saveState();
+    });
+    def._row = row; def._buyBtn = buyBtn; def._cnt = row.querySelector('.cnt'); def._costEl = row.querySelector('.cost');
+    return row;
+  }
+
+  buildingsData.forEach(d => solversListEl.appendChild(buildBuildingRow(d)));
+
+  function refreshBuildingsList(){
+    buildingsData.forEach(def=>{
+      const unlocked = buildingUnlocked(def);
+      def._row.classList.toggle('locked', !unlocked);
+      def._cnt.textContent = def.count;
+      const cost = buildingCost(def);
+      def._costEl.textContent = formatCompact(cost);
+      def._buyBtn.disabled = !unlocked || state.score < cost;
+      let reqEl = def._row.querySelector('.item-req');
+      if(!unlocked){
+        if(!reqEl){
+          reqEl = document.createElement('div');
+          reqEl.className = 'item-req';
+          def._row.insertBefore(reqEl, def._row.querySelector('.item-flavor'));
+        }
+        reqEl.textContent = requirementText(def);
+      } else if(reqEl){
+        reqEl.remove();
+      }
+    });
+  }
+
+  function refreshAll(){
+    renderScore();
+    refreshKeypadAfford();
+    if(modalTarget) refreshItemModalIfOpen();
+    if(solversModalOpen) refreshBuildingsList();
+  }
+
+  /* =========================================================
+     MUTE
+  ========================================================= */
+  muteBtn.addEventListener('click', ()=>{
+    state.muted = !state.muted;
+    muteBtn.textContent = state.muted ? '🔇' : '🔊';
+    saveState();
+  });
+
+  /* =========================================================
+     GAME LOOP
+  ========================================================= */
+  let lastTapeStamp = 0;
+  let autoGainAccum = 0;
+  function tick(dtSeconds){
+    const cps = totalCps();
+    if(cps > 0){
+      const gained = cps * dtSeconds;
+      state.score += gained;
+      autoGainAccum += gained;
+      renderScore();
+    }
+  }
+
+  function flushAutoGainPopup(){
+    if(autoGainAccum > 0){
+      showGain(autoGainAccum);
+      autoGainAccum = 0;
+    }
+  }
+
+  function maybePrintAutoTape(){
+    const owned = buildingsData.filter(b => b.count > 0);
+    if(!owned.length) return;
+    // print up to 2 lines from randomly chosen owned buildings
+    const n = Math.min(2, owned.length);
+    for(let i=0;i<n;i++){
+      if(Math.random() > 0.55) continue;
+      const b = owned[Math.floor(Math.random()*owned.length)];
+      printTape(b.name.toUpperCase() + '  ' + b.exprShow + ' = ' + formatCompact(b.value) + '  ×' + b.count, false);
+    }
+  }
+
+  let last = performance.now();
+  setInterval(()=>{
+    const now = performance.now();
+    const dt = (now - last) / 1000;
+    last = now;
+    tick(dt);
+  }, 100);
+
+  setInterval(()=>{
+    refreshKeypadAfford();
+    if(modalTarget) refreshItemModalIfOpen();
+    if(solversModalOpen) refreshBuildingsList();
+  }, 500);
+  setInterval(maybePrintAutoTape, 1400);
+  setInterval(flushAutoGainPopup, 1000);
+  setInterval(saveState, 5000);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveState(); });
+  window.addEventListener('pagehide', saveState);
+  window.addEventListener('beforeunload', saveState);
+
+  /* =========================================================
+     INIT
+  ========================================================= */
+  const hadSave = (function(){ try{ return !!localStorage.getItem(SAVE_KEY); }catch(e){ return false; } })();
+  loadState();
+  muteBtn.textContent = state.muted ? '🔇' : '🔊';
+  updateKeypadLocks();
+  renderExpr();
+  refreshAll();
+  printTape(hadSave ? 'CC‑1 ONLINE. SAVE RESTORED.' : 'CC‑1 ONLINE. PRESS = TO BEGIN.', false);
+
+})();
+</script>
+</body>
+</html>

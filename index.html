@@ -460,21 +460,30 @@
     font-family:'IBM Plex Mono'; font-size:0.65rem; color:var(--lcd-text-dim);
     padding-bottom:6px; white-space:nowrap;
   }
+  /* ---------- Hint row: static hint text + tiny icons of owned Auto-Solvers,
+     sharing a single fixed-height row of the LCD. This row's box never
+     grows: if the icons need more room than fits on one line, the whole
+     row (text + icons together) is scaled down by JS just enough to keep
+     everything inside the original height budget, rather than the LCD
+     (or the calculator) gaining any extra verticality. ---------- */
+  .lcd-hint-row{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    gap:2px 6px;
+    margin-top:2px;
+    height:14px; overflow:hidden;
+    transform-origin:100% 0%;
+  }
   .lcd-hint{
     font-family:'IBM Plex Mono'; font-size:0.62rem; color:var(--lcd-text-dim);
-    margin-top:2px; text-align:right; min-height:14px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    flex:0 1 auto; min-width:0;
   }
-
-  /* ---------- Solver tray: tiny icons of owned Auto-Solvers, bottom row of the LCD ---------- */
   .lcd-solver-tray{
-    display:flex; flex-wrap:wrap; align-items:center;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end;
     gap:3px 4px;
-    min-height:0; max-height:36px; overflow:hidden;
-    margin-top:4px; padding-top:4px;
-    border-top:1px dashed rgba(43,51,32,0.22);
-    transition:max-height .2s ease;
+    flex:1 1 auto; min-width:0;
   }
-  .lcd-solver-tray:empty{ margin-top:0; padding-top:0; border-top:none; }
+  .lcd-solver-tray:empty{ flex:0 0 0; }
   .solver-icon{
     width:15px; height:15px; flex:0 0 auto;
     display:inline-flex; align-items:center; justify-content:center;
@@ -966,8 +975,10 @@
             <span class="lcd-cps" id="lcdCps">&nbsp;</span>
             <span class="lcd-score" id="lcdScore">0</span>
           </div>
-          <div class="lcd-hint" id="lcdHint">pick a digit &amp; a symbol, then mash =</div>
-          <div class="lcd-solver-tray" id="lcdSolverTray" aria-hidden="true"></div>
+          <div class="lcd-hint-row" id="lcdHintRow">
+            <div class="lcd-hint" id="lcdHint">pick a digit &amp; a symbol, then mash =</div>
+            <div class="lcd-solver-tray" id="lcdSolverTray" aria-hidden="true"></div>
+          </div>
         </div>
 
         <div class="keypad" id="keypad">
@@ -1751,6 +1762,7 @@
   const lcdScoreEl = document.getElementById('lcdScore');
   const lcdCpsEl = document.getElementById('lcdCps');
   const lcdHintEl = document.getElementById('lcdHint');
+  const lcdHintRowEl = document.getElementById('lcdHintRow');
   const lcdSolverTrayEl = document.getElementById('lcdSolverTray');
   const lcdEl = document.getElementById('lcd');
   const tapeEl = document.getElementById('tape');
@@ -2216,7 +2228,36 @@
     lcdSolverTrayEl.innerHTML = '';
     lcdSolverTrayEl.appendChild(frag);
     lcdSolverTrayEl.classList.toggle('compact', totalIcons >= SOLVER_TRAY_COMPACT_AT);
+    fitHintRow();
   }
+
+  /* The hint row has a fixed height and can never grow the LCD/calculator.
+     If the hint text + solver icons don't all fit on that one line at
+     normal size (i.e. the icons would wrap to a second row), scale the
+     entire row down just enough for everything to fit back inside the
+     original height budget, instead of letting the row get taller. */
+  const HINT_ROW_MIN_SCALE = 0.55;
+  let hintFitRAF = null;
+
+  function fitHintRow(){
+    if(!lcdHintRowEl) return;
+    lcdHintRowEl.style.transform = 'none';
+    const boxH = lcdHintRowEl.clientHeight;
+    const naturalH = lcdHintRowEl.scrollHeight;
+    if(boxH > 0 && naturalH > boxH){
+      const scale = Math.max(HINT_ROW_MIN_SCALE, boxH / naturalH);
+      lcdHintRowEl.style.transform = 'scale(' + scale.toFixed(3) + ')';
+    } else {
+      lcdHintRowEl.style.transform = '';
+    }
+  }
+
+  function requestHintFit(){
+    if(hintFitRAF) cancelAnimationFrame(hintFitRAF);
+    hintFitRAF = requestAnimationFrame(fitHintRow);
+  }
+  window.addEventListener('resize', requestHintFit);
+  window.addEventListener('orientationchange', requestHintFit);
 
   /* =========================================================
      ACHIEVEMENTS: build once, update incrementally

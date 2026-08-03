@@ -101,6 +101,165 @@
     max-width:1080px; width:100%;
     transform-origin:center center;
     will-change:transform;
+    opacity:0;
+    visibility:hidden;
+  }
+  .desk.revealed{
+    opacity:1;
+    visibility:visible;
+    transition:opacity 0.6s ease;
+  }
+
+  /* ===================== title screen (pre-game splash; tap to power on).
+     Tapping fades to black, swaps in a static "PLASTICINE GAMES" studio
+     splash (exact palette/typography of the studio's other titles), plays
+     a blink + glitch-out beat, then fades away into the game underneath. ===================== */
+  .title-screen{
+    position:fixed; inset:0; z-index:100;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 30% -10%, #35302a 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-desk-1), var(--bg-desk-2));
+    text-align:center;
+    padding:20px;
+    cursor:pointer;
+    opacity:1;
+    transition:opacity 0.6s ease;
+    border:none;
+    margin:0;
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--text-light);
+    -webkit-appearance:none;
+    appearance:none;
+    touch-action:none;
+    overflow:hidden;
+  }
+  .title-screen.hide{ opacity:0; pointer-events:none; }
+
+  .title-face{ display:flex; flex-direction:column; align-items:center; }
+  .title-lcd{
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
+    border-radius:8px;
+    padding:6px 16px;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579;
+    margin-bottom:18px;
+  }
+  .title-lcd-led{
+    width:8px; height:8px; border-radius:50%; flex:0 0 auto;
+    background:#4a4238;
+    animation:titleLedBlink 2.6s infinite ease-in-out;
+  }
+  @keyframes titleLedBlink{
+    0%,88%,100%{ background:#8fe06a; box-shadow:0 0 6px 2px rgba(143,224,106,0.7); }
+    94%{ background:#4a4238; box-shadow:none; }
+  }
+  .title-lcd-text{
+    font-family:'VT323', monospace; font-size:1.15rem; letter-spacing:1.5px; color:var(--lcd-text);
+  }
+  .title-face h1{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(2rem, 8vh, 3rem); margin:0; letter-spacing:0.5px; color:var(--text-light);
+  }
+  .title-face .tag{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--text-dim); font-size:0.78rem; letter-spacing:0.1em;
+    text-transform:uppercase; margin-top:8px;
+  }
+  .title-rules{
+    text-align:center; color:var(--text-dim); font-size:0.85rem; line-height:1.4;
+    margin:16px auto 0; max-width:340px;
+  }
+  .title-rules b{ color:var(--text-light); font-weight:600; }
+  .title-face .tap-prompt{
+    font-family:'IBM Plex Mono', monospace;
+    margin-top:min(8vh, 56px);
+    color:var(--accent);
+    font-size:0.82rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    animation:pulseTap 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseTap{ 0%,100%{opacity:0.35;} 50%{opacity:1;} }
+
+  /* ---------- studio splash: exact palette/type of the Plasticine Games
+     bumper — dropped in wholesale rather than reskinned, since it's shared
+     studio branding, not part of this game's own visual identity ---------- */
+  .studio-face{
+    display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+  }
+  .title-screen.scene-studio{
+    background:
+      radial-gradient(circle at 18% 8%, rgba(232,163,61,0.10), transparent 45%),
+      radial-gradient(circle at 85% 92%, rgba(127,181,158,0.08), transparent 40%),
+      #201a2c;
+  }
+  .title-screen.scene-studio .title-face{ display:none; }
+  .title-screen.scene-studio .studio-face{ display:flex; }
+
+  .studio-face .eyes{ display:flex; justify-content:center; gap:8px; margin-bottom:10px; }
+  .studio-face .eyes span{
+    width:11px; height:11px; border-radius:50%;
+    background:#e8a33d;
+    box-shadow:0 0 10px rgba(232,163,61,0.7);
+  }
+  .studio-face .eyes.blink-once span{ animation:studioBlinkOnce 0.5s ease-in-out; }
+  .studio-face .eyes.blink-once span:nth-child(2){ animation-delay:0.15s; }
+  @keyframes studioBlinkOnce{ 0%,55%,100%{transform:scaleY(1);} 78%{transform:scaleY(0.12);} }
+
+  .studio-credit{
+    opacity:0;
+    margin-top:16px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.8rem;
+    letter-spacing:0.42em;
+    text-transform:uppercase;
+    color:#b7aecb;
+    transition:opacity 0.4s ease;
+  }
+  .studio-credit.show{ opacity:1; }
+
+  .studio-face .eyes.glitch-out,
+  .studio-credit.glitch-out{ animation:studioGlitchFade 0.7s steps(1) forwards; }
+  @keyframes studioGlitchFade{
+    0%{opacity:1; transform:translate(0,0) skew(0deg,0deg) scaleX(1); filter:none;}
+    5%{opacity:0.15; transform:translate(-7px,2px) skew(-6deg,0deg) scaleX(1.1); filter:hue-rotate(50deg) saturate(3);}
+    9%{opacity:1; transform:translate(5px,-3px) skew(4deg,1deg) scaleX(0.94); filter:none;}
+    13%{opacity:0.25; transform:translate(-4px,0) scaleX(1.12); filter:invert(0.2);}
+    18%{opacity:0.05; transform:translate(3px,3px); filter:none;}
+    23%{opacity:0.9; transform:translate(6px,1px) skew(-3deg,0deg); filter:hue-rotate(-40deg);}
+    28%{opacity:0.2; transform:translate(-8px,-2px) scaleX(0.9); filter:none;}
+    34%{opacity:0.8; transform:translate(2px,3px) skew(5deg,0deg); filter:saturate(4);}
+    40%{opacity:0.1; transform:translate(-3px,0); filter:none;}
+    47%{opacity:0.7; transform:translate(4px,-1px) scaleX(1.08); filter:invert(0.15);}
+    53%{opacity:0.03; transform:translate(-6px,2px); filter:none;}
+    60%{opacity:0.6; transform:translate(3px,0) skew(-4deg,0deg); filter:hue-rotate(70deg);}
+    67%{opacity:0.12; transform:translate(-2px,1px); filter:none;}
+    74%{opacity:0.45; transform:translate(5px,-2px) scaleX(0.95); filter:none;}
+    82%{opacity:0.06; transform:translate(-1px,1px); filter:invert(0.3);}
+    90%{opacity:0.25; transform:translate(1px,0); filter:none;}
+    96%{opacity:0.02; transform:translate(0,0);}
+    100%{opacity:0; transform:translate(0,0) skew(0deg,0deg) scaleX(1); filter:none;}
+  }
+
+  /* fade-to-black / fade-from-black transition layer between the two scenes */
+  .title-blackout{
+    position:absolute; inset:0; z-index:2;
+    background:#000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.45s ease;
+  }
+  .title-blackout.show{ opacity:1; }
+
+  @media (prefers-reduced-motion: reduce){
+    .title-lcd-led{ animation:none !important; }
+    .title-face .tap-prompt{ animation:none !important; }
+    .studio-face .eyes.blink-once span,
+    .studio-face .eyes.glitch-out,
+    .studio-credit.glitch-out{ animation:none !important; }
   }
 
   /* ---------- Top bar ---------- */
@@ -535,6 +694,28 @@
 </style>
 </head>
 <body>
+
+<button type="button" class="title-screen" id="titleScreen" aria-label="Tap to play">
+  <div class="title-face" id="titleFace">
+    <div class="title-lcd" aria-hidden="true">
+      <span class="title-lcd-led"></span>
+      <span class="title-lcd-text">CC&#8209;1 READY</span>
+    </div>
+    <h1>CALC&#8209;U&#8209;LATOR</h1>
+    <div class="tag">Model CC&#8209;1 &middot; Idle Calculator</div>
+    <p class="title-rules">
+      Tap a <b>digit</b> and an <b>operator</b>, mash <b>=</b>, and cash in the result.
+      Unlock new keys, automate the math, and rack up score forever.
+    </p>
+    <div class="tap-prompt">tap to power on</div>
+  </div>
+  <div class="studio-face" id="studioFace">
+    <div class="eyes" id="studioEyes"><span></span><span></span></div>
+    <div class="studio-credit" id="studioCredit">PLASTICINE GAMES</div>
+  </div>
+  <div class="title-blackout" id="titleBlackout"></div>
+</button>
+
 <div class="desk">
 
   <div class="topbar">
@@ -1034,10 +1215,21 @@
       osc.stop(now + dur);
     }catch(e){ /* audio unavailable, ignore */ }
   }
+  // A quick stutter of mistuned beeps — the audio equivalent of the
+  // studio splash's glitch-out animation.
+  function glitchZap(){
+    [900, 220, 1200, 160, 700, 80].forEach(function(f, i){
+      setTimeout(function(){ beep(f, 0.03, 0.035); }, i * 35);
+    });
+  }
 
   /* =========================================================
      DOM REFS
   ========================================================= */
+  const titleScreenEl = document.getElementById('titleScreen');
+  const titleBlackoutEl = document.getElementById('titleBlackout');
+  const studioEyesEl = document.getElementById('studioEyes');
+  const studioCreditEl = document.getElementById('studioCredit');
   const lcdExprEl = document.getElementById('lcdExpr');
   const lcdScoreEl = document.getElementById('lcdScore');
   const lcdCpsEl = document.getElementById('lcdCps');
@@ -1737,12 +1929,68 @@
   Music.onSongChange(renderMusicPanel);
 
   // Browsers block audio autoplay until a real user gesture happens on the
-  // page. This game has no title/splash screen to hang that gesture off of
-  // (unlike Owldoku), so start music on the very first tap/click anywhere.
+  // page. The title screen tap below is that gesture, but this fallback
+  // covers anyone who somehow reaches the game without it firing.
   document.addEventListener('pointerdown', function firstGesture(){
     document.removeEventListener('pointerdown', firstGesture);
     Music.autoStart();
   }, { once:true });
+
+  /* =========================================================
+     TITLE SCREEN
+     Tap fades the CALC-U-LATOR title to black, swaps in a static
+     "PLASTICINE GAMES" studio splash (dropped in with the studio's own
+     colors/type rather than this game's own palette), blinks once,
+     glitches out, then fades away into the machine underneath.
+  ========================================================= */
+  function dismissTitleScreen(){
+    Music.autoStart();
+    titleScreenEl.classList.add('hide');
+    deskEl.classList.add('revealed');
+    requestFit();
+    titleScreenEl.addEventListener('transitionend', function(){
+      titleScreenEl.style.display = 'none';
+    }, { once:true });
+  }
+
+  function playTitleIntro(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      dismissTitleScreen();
+      return;
+    }
+
+    // 1) fade the title screen to black
+    titleBlackoutEl.classList.add('show');
+    beep(180, 0.05, 0.035);
+
+    // 2) once black fully covers the screen, swap in the studio splash and
+    // fade back up into it
+    setTimeout(function(){
+      titleScreenEl.classList.add('scene-studio');
+      titleBlackoutEl.classList.remove('show');
+    }, 500);
+
+    // 3) the studio credit fades in below the (already-static) eyes
+    setTimeout(function(){ studioCreditEl.classList.add('show'); }, 1150);
+
+    // 4) blink once
+    setTimeout(function(){
+      studioEyesEl.classList.add('blink-once');
+      setTimeout(function(){ beep(520, 0.04, 0.03); }, 390);
+      setTimeout(function(){ beep(520, 0.04, 0.03); }, 150 + 390);
+    }, 1750);
+
+    // 5) glitch out
+    setTimeout(function(){
+      studioEyesEl.classList.add('glitch-out');
+      studioCreditEl.classList.add('glitch-out');
+      glitchZap();
+    }, 2500);
+
+    // 6) fade into the game
+    setTimeout(dismissTitleScreen, 3300);
+  }
+  titleScreenEl.addEventListener('click', playTitleIntro, { once:true });
 
   /* =========================================================
      GAME LOOP

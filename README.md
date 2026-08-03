@@ -10,11 +10,11 @@ CALC-U-LATOR started from a silly thought: what if a calculator was actually pow
 
 The game hands you a busted old solar calculator, the “CC-1,” with almost nothing unlocked. You tap out what you can, print a little paper tape, and slowly buy your way into more digits, more operators, and eventually a squad of little Auto-Solvers that keep the LCD ticking up even while you’re not looking.
 
-It’s an idle clicker at heart, but I wanted it to feel like a real desk object — warm case plastic, a slightly dim LCD, a tape unit that actually prints. No big story, no pressure, just a satisfying loop and a bigger number.
+It’s an idle clicker at heart, but I wanted it to feel like a real desk object: warm case plastic, a slightly dim LCD, a tape unit that actually prints. Nothing too crazy, just a fun  loop and the chase for a bigger number.
 
 CALC-U-LATOR is still a work in progress. You may run into bugs, balance issues, or features still being sanded down. Every update brings fixes and new things to unlock as I keep chipping away at it.
 
-If you give it a spin, thank you. I’d genuinely love to hear what you think — feedback and bug reports directly shape where the game goes next.
+If you give it a spin, thank you. I’d genuinely love to hear what you think! Feedback and bug reports directly shape where the game goes next.
 
 # Looking Ahead
 

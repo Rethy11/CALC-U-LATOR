@@ -297,6 +297,23 @@
   .mute-btn:hover{color:var(--text-light); border-color:var(--text-dim);}
   .music-btn.on{color:var(--accent); border-color:var(--accent);}
 
+  /* ---------- Achievements tab button + badge ---------- */
+  .achieve-btn{ position:relative; color:#d6a940; border-color:#5a4a2c; }
+  .achieve-btn:hover{ color:#f0c04a; border-color:#8a6d2e; }
+  .achieve-badge{
+    position:absolute; top:-5px; right:-5px;
+    width:11px; height:11px; border-radius:50%;
+    background:var(--danger);
+    box-shadow:0 0 0 2px var(--bg-desk-1), 0 0 6px 1px rgba(176,80,63,0.8);
+    display:none;
+    animation:achieveBadgePulse 1.6s ease-in-out infinite;
+  }
+  .achieve-badge.show{ display:block; }
+  @keyframes achieveBadgePulse{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.25); }
+  }
+
   /* ---------- Music (tape deck) ---------- */
   .music-modal-card{max-width:320px; text-align:left;}
   .music-lcd{
@@ -403,6 +420,7 @@
     white-space:nowrap; opacity:0.9; animation:printIn .35s ease-out;
   }
   .tape-line.you{color:#1f4d2e; font-weight:600;}
+  .tape-line.achievement{color:#a3271a; font-weight:700; letter-spacing:0.3px;}
   @keyframes printIn{ from{ transform:translateY(-6px); opacity:0;} to{ transform:translateY(0); opacity:0.9;} }
 
   /* LCD */
@@ -671,6 +689,42 @@
     font-size:0.68rem; color:var(--text-dim); grid-column:1;
   }
 
+  /* ---------- Achievements list ---------- */
+  .ach-item{
+    display:flex; gap:13px; align-items:flex-start;
+    background:var(--case); border:1px solid #423d35; border-radius:12px;
+    padding:12px 14px;
+    transition:border-color .3s, background .3s;
+  }
+  .ach-item.unlocked{ border-color:#6b5321; background:linear-gradient(160deg,#3a3327,var(--case) 65%); }
+  .ach-icon-wrap{
+    flex:0 0 auto; width:48px; height:48px; border-radius:11px;
+    background:var(--case-lo);
+    box-shadow:inset 0 3px 8px rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center;
+    transition:box-shadow .3s, background .3s;
+  }
+  .ach-icon-wrap.unlocked{
+    background:radial-gradient(circle at 35% 30%, #4a3f28, #241f16 75%);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,0.4), 0 0 14px 1px rgba(232,180,58,0.45);
+  }
+  .ach-trophy{ width:27px; height:27px; color:#4c473e; display:block; }
+  .ach-icon-wrap.unlocked .ach-trophy{ width:30px; height:30px; animation:trophyPop .45s ease; }
+  @keyframes trophyPop{
+    0%{ transform:scale(0.35) rotate(-8deg); opacity:0; }
+    65%{ transform:scale(1.18) rotate(3deg); opacity:1; }
+    100%{ transform:scale(1) rotate(0deg); opacity:1; }
+  }
+  .ach-body{ flex:1 1 auto; min-width:0; }
+  .ach-name{ font-family:'Space Grotesk'; font-weight:600; font-size:0.9rem; color:#8b8272; transition:color .3s; }
+  .ach-item.unlocked .ach-name{ color:var(--text-light); }
+  .ach-desc{ font-size:0.71rem; color:var(--text-dim); margin-top:3px; line-height:1.4; }
+  .ach-status{
+    font-size:0.6rem; letter-spacing:0.8px; text-transform:uppercase;
+    margin-top:7px; color:#6b6459; font-family:'IBM Plex Mono';
+  }
+  .ach-item.unlocked .ach-status{ color:#e0b143; }
+
   footer.note{
     display:flex; align-items:center; justify-content:center;
     gap:12px; flex-wrap:wrap;
@@ -694,6 +748,39 @@
 </style>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff3c4"/>
+      <stop offset="32%" stop-color="#f0c04a"/>
+      <stop offset="68%" stop-color="#d69a1e"/>
+      <stop offset="100%" stop-color="#b87d12"/>
+    </linearGradient>
+    <linearGradient id="goldGradStem" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8b93e"/>
+      <stop offset="100%" stop-color="#a5720f"/>
+    </linearGradient>
+  </defs>
+  <symbol id="trophyOutline" viewBox="0 0 24 24">
+    <path d="M7 4h10v3.2c0 3.5-2.2 6.3-5 6.3s-5-2.8-5-6.3V4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+    <path d="M7 5H4.5a2.5 2.5 0 0 0 2.5 3.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M17 5h2.5A2.5 2.5 0 0 1 17 8.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12 13.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M9 20.2h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M9.6 16.5h4.8l0.9 3.2H8.7l0.9-3.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="trophyGold" viewBox="0 0 24 24">
+    <path d="M7 4h10v3.2c0 3.5-2.2 6.3-5 6.3s-5-2.8-5-6.3V4z" fill="url(#goldGrad)" stroke="#8a5d0c" stroke-width="0.6"/>
+    <path d="M7 5H4.5a2.5 2.5 0 0 0 2.5 3.3" fill="none" stroke="#c8930f" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M17 5h2.5A2.5 2.5 0 0 1 17 8.3" fill="none" stroke="#c8930f" stroke-width="1.3" stroke-linecap="round"/>
+    <rect x="11.1" y="13.3" width="1.8" height="3.4" rx="0.5" fill="url(#goldGradStem)"/>
+    <rect x="8.6" y="19.6" width="6.8" height="1.4" rx="0.6" fill="url(#goldGradStem)"/>
+    <path d="M9.6 16.4h4.8l0.9 3.2H8.7l0.9-3.2z" fill="url(#goldGrad)" stroke="#8a5d0c" stroke-width="0.5" stroke-linejoin="round"/>
+    <path d="M9.3 5.4c0 2.6 1.4 4.6 2.7 4.6" fill="none" stroke="#fff6d8" stroke-width="0.9" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="15.4" cy="5.6" r="0.55" fill="#fff8e0" opacity="0.9"/>
+  </symbol>
+</svg>
 
 <button type="button" class="title-screen" id="titleScreen" aria-label="Tap to play">
   <div class="title-face" id="titleFace">
@@ -725,6 +812,9 @@
       <span><b id="cpsReadout">+0</b>/sec</span>
       <button class="mute-btn" id="muteBtn" title="Toggle sound" aria-label="Toggle sound">🔊</button>
       <button class="mute-btn music-btn on" id="musicBtn" title="Music" aria-label="Open music player">🎵</button>
+      <button class="mute-btn achieve-btn" id="achieveBtn" title="Achievements" aria-label="Open achievements">
+        <span class="achieve-badge" id="achieveBadge"></span>🏆
+      </button>
     </div>
   </div>
 
@@ -869,6 +959,19 @@
   </div>
 </div>
 
+<!-- ACHIEVEMENTS MODAL (opens via the topbar trophy button) -->
+<div class="modal-overlay" id="achieveModal" aria-hidden="true">
+  <div class="modal-card modal-card-wide">
+    <div class="solvers-head">
+      <div class="modal-title">Achievements</div>
+      <button class="modal-close" id="achieveModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-scroll-area">
+      <div class="modal-solvers-list" id="achieveList"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -989,6 +1092,42 @@
   ];
 
   /* =========================================================
+     ACHIEVEMENTS
+     Each check() runs against live game state; order doesn't matter,
+     they're evaluated independently every time checkAchievements() runs.
+  ========================================================= */
+  const achievementsData = [
+    {id:'first_calc',  name:'First Contact',        desc:'Press = for the first time.',
+      check: s => s.everClicked},
+    {id:'score_1k',    name:'Small Change',         desc:'Reach a score of 1,000.',
+      check: s => s.score >= 1e3},
+    {id:'score_1m',    name:'Big Numbers',          desc:'Reach a score of 1,000,000.',
+      check: s => s.score >= 1e6},
+    {id:'score_1b',    name:'Astronomical',         desc:'Reach a score of 1,000,000,000.',
+      check: s => s.score >= 1e9},
+    {id:'score_1t',    name:'Beyond Reckoning',     desc:'Reach a score of 1,000,000,000,000.',
+      check: s => s.score >= 1e12},
+    {id:'full_digits', name:'Full Keyboard',        desc:'Unlock every digit, 0 through 9.',
+      check: s => ['0','1','2','3','4','5','6','7','8','9'].every(d => s.unlockedNumbers.has(d))},
+    {id:'full_ops',    name:'Order Of Operations',  desc:'Unlock every operator: × ! ^',
+      check: s => ['*','!','^'].every(o => s.unlockedOperators.has(o))},
+    {id:'first_solver',name:'Automated',            desc:'Own your first Auto‑Solver of any kind.',
+      check: () => buildingsData.some(b => b.count >= 1)},
+    {id:'own_10',      name:'Assembly Line',        desc:'Own 10 of any single Auto‑Solver.',
+      check: () => buildingsData.some(b => b.count >= 10)},
+    {id:'own_50',      name:'Mass Production',      desc:'Own 50 of any single Auto‑Solver.',
+      check: () => buildingsData.some(b => b.count >= 50)},
+    {id:'own_100',     name:'Factory Floor',        desc:'Own 100 of any single Auto‑Solver.',
+      check: () => buildingsData.some(b => b.count >= 100)},
+    {id:'own_oracle',  name:'The Oracle Speaks',    desc:'Own at least one Oracle.',
+      check: () => { const o = buildingsData.find(b => b.id === 'oracle'); return !!o && o.count >= 1; }},
+    {id:'ascend_1',    name:'Ascended',             desc:'Ascend for the first time.',
+      check: s => s.ascendCount >= 1},
+    {id:'ascend_5',    name:'Reincarnated',         desc:'Ascend 5 times.',
+      check: s => s.ascendCount >= 5},
+  ];
+
+  /* =========================================================
      STATE
   ========================================================= */
   const state = {
@@ -1001,6 +1140,9 @@
     everClicked:false,
     muted:false,
     ascensionPoints:0, // permanent — survives ascension, unlike everything else above
+    ascendCount:0,     // permanent — total number of times ascended, for achievements
+    unlockedAchievements:new Set(), // permanent — achievement ids earned so far
+    unseenAchievements:new Set(),   // subset of unlockedAchievements not yet viewed in the tab
   };
 
   /* =========================================================
@@ -1020,6 +1162,9 @@
         everClicked: state.everClicked,
         muted: state.muted,
         ascensionPoints: state.ascensionPoints,
+        ascendCount: state.ascendCount,
+        unlockedAchievements: Array.from(state.unlockedAchievements),
+        unseenAchievements: Array.from(state.unseenAchievements),
         buildings: buildingsData.map(b => ({id:b.id, count:b.count})),
         savedAt: Date.now(),
       };
@@ -1046,6 +1191,11 @@
     if(typeof data.ascensionPoints === 'number' && isFinite(data.ascensionPoints) && data.ascensionPoints >= 0){
       state.ascensionPoints = data.ascensionPoints;
     }
+    if(typeof data.ascendCount === 'number' && isFinite(data.ascendCount) && data.ascendCount >= 0){
+      state.ascendCount = data.ascendCount;
+    }
+    if(Array.isArray(data.unlockedAchievements)) state.unlockedAchievements = new Set(data.unlockedAchievements);
+    if(Array.isArray(data.unseenAchievements)) state.unseenAchievements = new Set(data.unseenAchievements);
 
     if(Array.isArray(data.buildings)){
       data.buildings.forEach(saved=>{
@@ -1429,6 +1579,12 @@
   const ascendBtnEl = document.getElementById('ascendBtn');
   const ascendBtnFillEl = document.getElementById('ascendBtnFill');
 
+  const achieveBtn = document.getElementById('achieveBtn');
+  const achieveBadgeEl = document.getElementById('achieveBadge');
+  const achieveModalEl = document.getElementById('achieveModal');
+  const achieveModalCloseBtn = document.getElementById('achieveModalClose');
+  const achieveListEl = document.getElementById('achieveList');
+
   const musicModalEl = document.getElementById('musicModal');
   const musicModalCloseBtn = document.getElementById('musicModalClose');
   const musicNowNameEl = document.getElementById('musicNowName');
@@ -1443,9 +1599,13 @@
      TAPE LOG
   ========================================================= */
   const MAX_TAPE_LINES = 30;
-  function printTape(text, isYou){
+  // kind: falsy = normal machine print, true = "you" (green), 'achievement' = red unlock text
+  function printTape(text, kind){
     const line = document.createElement('div');
-    line.className = 'tape-line' + (isYou ? ' you' : '');
+    let cls = 'tape-line';
+    if(kind === 'achievement') cls += ' achievement';
+    else if(kind) cls += ' you';
+    line.className = cls;
     line.textContent = text;
     tapeEl.insertBefore(line, tapeEl.firstChild);
     while(tapeEl.children.length > MAX_TAPE_LINES){
@@ -1640,6 +1800,7 @@
     beep(700, 0.06, 0.05);
     renderExpr();
     renderScore();
+    checkAchievements();
     saveState();
   }
 
@@ -1723,6 +1884,7 @@
     beep(880, 0.08, 0.06);
     updateKeypadLocks();
     refreshAll();
+    checkAchievements();
     closeItemModal();
     saveState();
   }
@@ -1774,6 +1936,7 @@
       printTape(def.name.toUpperCase() + '  now × ' + def.count, false);
       beep(660, 0.05, 0.04);
       refreshAll();
+      checkAchievements();
       saveState();
     });
     def._row = row; def._buyBtn = buyBtn; def._cnt = row.querySelector('.cnt'); def._costEl = row.querySelector('.cost'); def._valEl = row.querySelector('.val');
@@ -1813,6 +1976,86 @@
   }
 
   /* =========================================================
+     ACHIEVEMENTS: build once, update incrementally
+  ========================================================= */
+  function buildAchievementRow(def){
+    const row = document.createElement('div');
+    row.className = 'ach-item locked';
+    row.innerHTML =
+      '<div class="ach-icon-wrap"><svg class="ach-trophy" aria-hidden="true"><use href="#trophyOutline"></use></svg></div>' +
+      '<div class="ach-body">' +
+        '<div class="ach-name">' + def.name + '</div>' +
+        '<div class="ach-desc">' + def.desc + '</div>' +
+        '<div class="ach-status">Locked</div>' +
+      '</div>';
+    def._row = row;
+    def._iconWrap = row.querySelector('.ach-icon-wrap');
+    def._use = row.querySelector('use');
+    def._statusEl = row.querySelector('.ach-status');
+    def._rendered = false; // whether the row is currently drawn as unlocked
+    return row;
+  }
+  achievementsData.forEach(d => achieveListEl.appendChild(buildAchievementRow(d)));
+
+  function refreshAchievementsList(){
+    achievementsData.forEach(def=>{
+      const unlocked = state.unlockedAchievements.has(def.id);
+      if(unlocked === def._rendered) return;
+      def._rendered = unlocked;
+      def._row.classList.toggle('locked', !unlocked);
+      def._row.classList.toggle('unlocked', unlocked);
+      def._iconWrap.classList.toggle('unlocked', unlocked);
+      def._use.setAttribute('href', unlocked ? '#trophyGold' : '#trophyOutline');
+      def._statusEl.textContent = unlocked ? 'Unlocked' : 'Locked';
+    });
+  }
+
+  function updateAchieveBadge(){
+    achieveBadgeEl.classList.toggle('show', state.unseenAchievements.size > 0);
+  }
+
+  function checkAchievements(){
+    let gotNew = false;
+    achievementsData.forEach(def=>{
+      if(state.unlockedAchievements.has(def.id)) return;
+      if(def.check(state)){
+        state.unlockedAchievements.add(def.id);
+        state.unseenAchievements.add(def.id);
+        gotNew = true;
+        printTape('ACHIEVEMENT UNLOCKED! ' + def.name, 'achievement');
+        beep(880, 0.08, 0.05);
+        setTimeout(()=> beep(1180, 0.14, 0.06), 90);
+      }
+    });
+    if(gotNew){
+      updateAchieveBadge();
+      if(achieveModalOpen) refreshAchievementsList();
+      saveState();
+    }
+  }
+
+  let achieveModalOpen = false;
+  function openAchieveModal(){
+    achieveModalOpen = true;
+    refreshAchievementsList();
+    achieveModalEl.classList.add('open');
+    achieveModalEl.setAttribute('aria-hidden', 'false');
+    if(state.unseenAchievements.size){
+      state.unseenAchievements.clear();
+      updateAchieveBadge();
+      saveState();
+    }
+  }
+  function closeAchieveModal(){
+    achieveModalOpen = false;
+    achieveModalEl.classList.remove('open');
+    achieveModalEl.setAttribute('aria-hidden', 'true');
+  }
+  achieveBtn.addEventListener('click', openAchieveModal);
+  achieveModalCloseBtn.addEventListener('click', closeAchieveModal);
+  achieveModalEl.addEventListener('click', (e)=>{ if(e.target === achieveModalEl) closeAchieveModal(); });
+
+  /* =========================================================
      ASCENSION MODAL
   ========================================================= */
   function openAscendModal(){
@@ -1837,6 +2080,7 @@
   function performAscension(){
     const gain = calcAscensionGain();
     state.ascensionPoints += gain;
+    state.ascendCount += 1;
 
     // wipe everything else — this is the "ascension" trade
     state.score = 0;
@@ -1853,6 +2097,7 @@
     refreshAll();
     printTape('ASCENDED. +' + formatPoints(gain) + ' MEM PTS (total ' + formatPoints(state.ascensionPoints) + ')', true);
     beep(440, 0.15, 0.07);
+    checkAchievements();
     saveState();
   }
 
@@ -2226,6 +2471,7 @@
     refreshKeypadAfford();
     if(modalTarget) refreshItemModalIfOpen();
     if(solversModalOpen) refreshBuildingsList();
+    checkAchievements();
   }, 500);
   setInterval(maybePrintAutoTape, 1400);
   setInterval(flushAutoGainPopup, 1000);
@@ -2245,6 +2491,9 @@
   updateKeypadLocks();
   renderExpr();
   refreshAll();
+  refreshAchievementsList();
+  updateAchieveBadge();
+  checkAchievements();
   printTape(hadSave ? 'CC‑1 ONLINE. SAVE RESTORED.' : 'CC‑1 ONLINE. PRESS = TO BEGIN.', false);
   requestFit();
 

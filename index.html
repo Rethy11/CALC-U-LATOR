@@ -464,6 +464,134 @@
     font-family:'IBM Plex Mono'; font-size:0.62rem; color:var(--lcd-text-dim);
     margin-top:2px; text-align:right; min-height:14px;
   }
+
+  /* ---------- Solver tray: tiny icons of owned Auto-Solvers, bottom row of the LCD ---------- */
+  .lcd-solver-tray{
+    display:flex; flex-wrap:wrap; align-items:center;
+    gap:3px 4px;
+    min-height:0; max-height:36px; overflow:hidden;
+    margin-top:4px; padding-top:4px;
+    border-top:1px dashed rgba(43,51,32,0.22);
+    transition:max-height .2s ease;
+  }
+  .lcd-solver-tray:empty{ margin-top:0; padding-top:0; border-top:none; }
+  .solver-icon{
+    width:15px; height:15px; flex:0 0 auto;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:#33401f;
+    position:relative;
+    transition:width .2s ease, height .2s ease;
+  }
+  .solver-icon svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .lcd-solver-tray.compact{ gap:2px 3px; }
+  .lcd-solver-tray.compact .solver-icon{ width:10px; height:10px; }
+
+  /* Each building's icon animates only the part of it that would actually
+     move — the icon as a whole stays put in its slot. */
+
+  /* Adding Machine: lever periodically flips over and holds, like a switch
+     being thrown, rather than rocking continuously. */
+  .solver-icon.ico-add .lever-arm{
+    transform-box:fill-box; transform-origin:50% 100%;
+    animation:leverFlip 2.4s steps(1,end) infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  @keyframes leverFlip{
+    0%, 45%   { transform:rotate(-16deg); }
+    50%, 95%  { transform:rotate(16deg); }
+    100%      { transform:rotate(-16deg); }
+  }
+
+  /* Abacus Array: each bead slides along its wire and pauses at the ends,
+     offset in time so they don't all move together. */
+  .solver-icon.ico-abacus .bead{ transform-box:fill-box; transform-origin:50% 50%; }
+  .solver-icon.ico-abacus .bead-a{ animation:beadSlideR 2.6s ease-in-out infinite; animation-delay:var(--stagger, 0s); }
+  .solver-icon.ico-abacus .bead-b{ animation:beadSlideL 2.6s ease-in-out infinite; animation-delay:calc(var(--stagger, 0s) + 0.35s); }
+  .solver-icon.ico-abacus .bead-c{ animation:beadSlideR 2.6s ease-in-out infinite; animation-delay:calc(var(--stagger, 0s) + 0.7s); }
+  @keyframes beadSlideR{ 0%,15%{ transform:translateX(0); } 40%,60%{ transform:translateX(3.4px); } 85%,100%{ transform:translateX(0); } }
+  @keyframes beadSlideL{ 0%,15%{ transform:translateX(0); } 40%,60%{ transform:translateX(-3.4px); } 85%,100%{ transform:translateX(0); } }
+
+  /* Slide Rule Engine: the gear itself turns steadily, since that's simply
+     what a gear does. */
+  .solver-icon.ico-slide .gear{
+    transform-box:fill-box; transform-origin:50% 50%;
+    animation:gearSpin 3.2s linear infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  @keyframes gearSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  /* Factorial Forge: outer and inner flame layers flicker slightly out of
+     sync, rooted at the base rather than drifting. */
+  .solver-icon.ico-forge .flame-outer{
+    transform-box:fill-box; transform-origin:50% 100%;
+    animation:flameOuter 1s ease-in-out infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  .solver-icon.ico-forge .flame-inner{
+    transform-box:fill-box; transform-origin:50% 100%;
+    animation:flameInner 0.85s ease-in-out infinite;
+    animation-delay:calc(var(--stagger, 0s) + 0.15s);
+  }
+  @keyframes flameOuter{
+    0%,100%{ transform:scale(1,1) skewX(0deg); }
+    30%{ transform:scale(0.92,1.06) skewX(-3deg); }
+    60%{ transform:scale(1.06,0.94) skewX(2deg); }
+    82%{ transform:scale(0.97,1.02) skewX(-1deg); }
+  }
+  @keyframes flameInner{
+    0%,100%{ opacity:0.55; transform:scale(1,1); }
+    40%{ opacity:0.8; transform:scale(0.85,1.1); }
+    72%{ opacity:0.4; transform:scale(1.05,0.9); }
+  }
+
+  /* Power Coil: the bolt strobes like a discharge and the coil shows a
+     current flowing through it — nothing drifts. */
+  .solver-icon.ico-power .bolt{
+    animation:boltFlash 1.8s steps(1,end) infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  .solver-icon.ico-power .coil{
+    stroke-dasharray:2.2 2.6;
+    animation:coilFlow 1s linear infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  @keyframes boltFlash{
+    0%,40%,100%{ opacity:1; }
+    45%{ opacity:0.25; }
+    50%{ opacity:1; }
+    55%{ opacity:0.4; }
+    60%{ opacity:1; }
+  }
+  @keyframes coilFlow{ to{ stroke-dashoffset:-9.6; } }
+
+  /* Quantum Solver: each orbit ring (with its electron) spins around the
+     fixed nucleus at its own rate — literal orbiting, not swaying. */
+  .solver-icon.ico-quantum .orbit{ transform-box:fill-box; transform-origin:50% 50%; }
+  .solver-icon.ico-quantum .orbit-a{ animation:atomSpin 3s linear infinite; animation-delay:var(--stagger, 0s); }
+  .solver-icon.ico-quantum .orbit-b{ animation:atomSpin 4s linear infinite reverse; animation-delay:var(--stagger, 0s); }
+  .solver-icon.ico-quantum .orbit-c{ animation:atomSpin 5s linear infinite; animation-delay:var(--stagger, 0s); }
+  @keyframes atomSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  /* Infinity Engine: a bright segment continuously flows around the fixed
+     loop, rather than the loop itself pulsing or moving. */
+  .solver-icon.ico-infinity .inf-flow{
+    animation:infFlow 1.8s linear infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  @keyframes infFlow{ to{ stroke-dashoffset:-26; } }
+
+  /* The Oracle: the eye blinks in place. */
+  .solver-icon.ico-oracle .eye-lid-group{
+    transform-box:fill-box; transform-origin:50% 50%;
+    animation:eyeBlink 3.2s ease-in-out infinite;
+    animation-delay:var(--stagger, 0s);
+  }
+  @keyframes eyeBlink{
+    0%,88%,100%{ transform:scaleY(1); }
+    93%{ transform:scaleY(0.1); }
+    96%{ transform:scaleY(1); }
+  }
+
   .float-gain{
     position:absolute; right:14px; top:34px;
     font-family:'VT323'; font-size:1.3rem; color:#3a4a26;
@@ -839,6 +967,7 @@
             <span class="lcd-score" id="lcdScore">0</span>
           </div>
           <div class="lcd-hint" id="lcdHint">pick a digit &amp; a symbol, then mash =</div>
+          <div class="lcd-solver-tray" id="lcdSolverTray" aria-hidden="true"></div>
         </div>
 
         <div class="keypad" id="keypad">
@@ -1090,6 +1219,77 @@
     {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:35000000000,    growth:1.13, count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
     {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:11000000000000, growth:1.14, count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
   ];
+
+  /* =========================================================
+     SOLVER TRAY ICONS
+     One detailed SVG glyph per building, drawn on the LCD's bottom row
+     once you own at least one of that type. Each icon's outer <svg> wears
+     an "ico-<id>" class the CSS uses to animate only the specific inner
+     part that would plausibly move (a lever arm, a gear, a bead) — the
+     icon itself stays put in its slot.
+  ========================================================= */
+  const SOLVER_ICONS = {
+    add:
+      '<svg viewBox="0 0 16 16">' +
+        '<rect x="1.5" y="9.6" width="13" height="4" rx="1.3" fill="currentColor" opacity="0.85"/>' +
+        '<rect x="1.5" y="9.6" width="13" height="1.3" rx="0.6" fill="currentColor" opacity="0.4"/>' +
+        '<circle cx="8" cy="11.4" r="1.1" fill="var(--lcd-bg)"/>' +
+        '<g class="lever-arm">' +
+          '<rect x="7.35" y="3.1" width="1.3" height="7.6" rx="0.65" fill="currentColor"/>' +
+          '<circle cx="8" cy="3.1" r="1.7" fill="currentColor"/>' +
+          '<circle cx="8" cy="3.1" r="0.7" fill="var(--lcd-bg)" opacity="0.6"/>' +
+        '</g>' +
+      '</svg>',
+    abacus:
+      '<svg viewBox="0 0 16 16">' +
+        '<rect x="1" y="2.3" width="14" height="11.4" rx="1.3" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.5"/>' +
+        '<line x1="2" y1="5" x2="14" y2="5" stroke="currentColor" stroke-width="0.9"/>' +
+        '<line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="0.9"/>' +
+        '<line x1="2" y1="11" x2="14" y2="11" stroke="currentColor" stroke-width="0.9"/>' +
+        '<circle class="bead bead-a" cx="5" cy="5" r="1.4" fill="currentColor"/>' +
+        '<circle class="bead bead-b" cx="10.5" cy="8" r="1.4" fill="currentColor"/>' +
+        '<circle class="bead bead-c" cx="6.5" cy="11" r="1.4" fill="currentColor"/>' +
+      '</svg>',
+    slide:
+      '<svg viewBox="0 0 16 16">' +
+        '<g class="gear">' +
+          '<path d="M8 1.3l.9 1.5 1.7-.6.5 1.7 1.8 0 .2 1.8 1.7.6-.6 1.7 1 1.5-1.5.9.1 1.8-1.8.2-.6 1.7-1.7-.5-.9 1.5-1.5-.9-1.7.6-.5-1.7-1.8 0-.2-1.8-1.7-.6.6-1.7-1-1.5 1.5-.9-.1-1.8 1.8-.2.6-1.7 1.7.5z" fill="currentColor"/>' +
+          '<circle cx="8" cy="8" r="2.2" fill="var(--lcd-bg)"/>' +
+          '<circle cx="8" cy="8" r="0.9" fill="currentColor" opacity="0.4"/>' +
+        '</g>' +
+      '</svg>',
+    forge:
+      '<svg viewBox="0 0 16 16">' +
+        '<path class="flame-outer" d="M8 1.2c1.1 2-1 3.1-1 5 0 1 .6 1.6 1.5 1.6.9 0 1.4-.9 1.4-1.6 1.4 1.4 1.9 2.9 1.9 4.3A3.8 3.8 0 0 1 4.2 10.5c0-3.3 2.4-5.2 3.8-9.3z" fill="currentColor"/>' +
+        '<path class="flame-inner" d="M8 6.5c.5.9 1 1.8 1 2.6a2 2 0 0 1-4 0c0-1.3.9-2.3 1.7-3.4.4.3.9.5 1.3.8z" fill="var(--lcd-bg)" opacity="0.55"/>' +
+      '</svg>',
+    power:
+      '<svg viewBox="0 0 16 16">' +
+        '<path class="coil" d="M2.5 12.6c0-1.2 1.1-2.2 2.6-2.2s2.6 1 2.6 2.2 1.1 2.2 2.6 2.2 2.6-1 2.6-2.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/>' +
+        '<path class="bolt" d="M9.4 1.6 4.2 9h3.3l-0.9 5.4L12.8 7H9.5l-0.1-5.4z" fill="currentColor"/>' +
+      '</svg>',
+    quantum:
+      '<svg viewBox="0 0 16 16">' +
+        '<circle cx="8" cy="8" r="1.3" fill="currentColor"/>' +
+        '<g class="orbit orbit-a"><ellipse cx="8" cy="8" rx="6.2" ry="2.3" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="14.2" cy="8" r="0.9" fill="currentColor"/></g>' +
+        '<g transform="rotate(60 8 8)"><g class="orbit orbit-b"><ellipse cx="8" cy="8" rx="6.2" ry="2.3" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="14.2" cy="8" r="0.9" fill="currentColor"/></g></g>' +
+        '<g transform="rotate(120 8 8)"><g class="orbit orbit-c"><ellipse cx="8" cy="8" rx="6.2" ry="2.3" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="14.2" cy="8" r="0.9" fill="currentColor"/></g></g>' +
+      '</svg>',
+    infinity:
+      '<svg viewBox="0 0 16 16">' +
+        '<path class="inf-track" d="M4.5 5.5a2.5 2.5 0 1 0 0 5c1.4 0 2.2-1 3.5-2.5 1.3 1.5 2.1 2.5 3.5 2.5a2.5 2.5 0 1 0 0-5c-1.4 0-2.2 1-3.5 2.5C6.7 6.5 5.9 5.5 4.5 5.5z" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/>' +
+        '<path class="inf-flow" d="M4.5 5.5a2.5 2.5 0 1 0 0 5c1.4 0 2.2-1 3.5-2.5 1.3 1.5 2.1 2.5 3.5 2.5a2.5 2.5 0 1 0 0-5c-1.4 0-2.2 1-3.5 2.5C6.7 6.5 5.9 5.5 4.5 5.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="3 23"/>' +
+      '</svg>',
+    oracle:
+      '<svg viewBox="0 0 16 16">' +
+        '<path class="eye-outline" d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z" fill="none" stroke="currentColor" stroke-width="1"/>' +
+        '<g class="eye-lid-group">' +
+          '<circle class="iris" cx="8" cy="8" r="2.1" fill="currentColor"/>' +
+          '<circle class="pupil" cx="8" cy="8" r="0.9" fill="var(--lcd-bg)"/>' +
+          '<circle class="glint" cx="7.3" cy="7.3" r="0.5" fill="var(--lcd-bg)" opacity="0.85"/>' +
+        '</g>' +
+      '</svg>',
+  };
 
   /* =========================================================
      ACHIEVEMENTS
@@ -1551,6 +1751,7 @@
   const lcdScoreEl = document.getElementById('lcdScore');
   const lcdCpsEl = document.getElementById('lcdCps');
   const lcdHintEl = document.getElementById('lcdHint');
+  const lcdSolverTrayEl = document.getElementById('lcdSolverTray');
   const lcdEl = document.getElementById('lcd');
   const tapeEl = document.getElementById('tape');
   const cpsReadoutEl = document.getElementById('cpsReadout');
@@ -1936,6 +2137,7 @@
       printTape(def.name.toUpperCase() + '  now × ' + def.count, false);
       beep(660, 0.05, 0.04);
       refreshAll();
+      renderSolverTray();
       checkAchievements();
       saveState();
     });
@@ -1973,6 +2175,47 @@
     refreshKeypadAfford();
     if(modalTarget) refreshItemModalIfOpen();
     if(solversModalOpen) refreshBuildingsList();
+  }
+
+  /* =========================================================
+     SOLVER TRAY: detailed animated icons on the LCD's bottom row, one
+     per owned Auto-Solver (capped per type). Each icon is placed at a
+     small fixed random offset (not animated — it just sits there), and
+     its moving parts (a lever, gear, beads, ...) animate on a slightly
+     randomized delay so a row of the same icon doesn't move in lockstep.
+     Rebuilt only when ownership actually changes, not every tick.
+  ========================================================= */
+  const SOLVER_TRAY_CAP_PER_TYPE = 6;   // avoid one huge building flooding the row
+  const SOLVER_TRAY_COMPACT_AT = 10;    // total icon count that triggers the smaller size
+  let lastSolverTraySignature = '';
+
+  function renderSolverTray(){
+    const signature = buildingsData.map(b => b.count).join(',');
+    if(signature === lastSolverTraySignature) return;
+    lastSolverTraySignature = signature;
+
+    const frag = document.createDocumentFragment();
+    let totalIcons = 0;
+    buildingsData.forEach(b=>{
+      if(b.count <= 0) return;
+      const svg = SOLVER_ICONS[b.id];
+      if(!svg) return;
+      const n = Math.min(b.count, SOLVER_TRAY_CAP_PER_TYPE);
+      for(let i=0;i<n;i++){
+        const icon = document.createElement('span');
+        icon.className = 'solver-icon ico-' + b.id;
+        icon.title = b.name;
+        icon.innerHTML = svg;
+        icon.style.top = (Math.random()*6 - 3).toFixed(1) + 'px';
+        icon.style.marginLeft = (Math.random()*3).toFixed(1) + 'px';
+        icon.style.setProperty('--stagger', (Math.random()*1.4).toFixed(2) + 's');
+        frag.appendChild(icon);
+        totalIcons++;
+      }
+    });
+    lcdSolverTrayEl.innerHTML = '';
+    lcdSolverTrayEl.appendChild(frag);
+    lcdSolverTrayEl.classList.toggle('compact', totalIcons >= SOLVER_TRAY_COMPACT_AT);
   }
 
   /* =========================================================
@@ -2095,6 +2338,7 @@
     updateKeypadLocks();
     renderExpr();
     refreshAll();
+    renderSolverTray();
     printTape('ASCENDED. +' + formatPoints(gain) + ' MEM PTS (total ' + formatPoints(state.ascensionPoints) + ')', true);
     beep(440, 0.15, 0.07);
     checkAchievements();
@@ -2517,6 +2761,7 @@
   updateKeypadLocks();
   renderExpr();
   refreshAll();
+  renderSolverTray();
   refreshAchievementsList();
   updateAchieveBadge();
   checkAchievements();

@@ -1215,12 +1215,179 @@
       osc.stop(now + dur);
     }catch(e){ /* audio unavailable, ignore */ }
   }
-  // A quick stutter of mistuned beeps — the audio equivalent of the
-  // studio splash's glitch-out animation.
-  function glitchZap(){
-    [900, 220, 1200, 160, 700, 80].forEach(function(f, i){
-      setTimeout(function(){ beep(f, 0.03, 0.035); }, i * 35);
+  function ensureTitleActx(){
+    if(state.muted) return null;
+    try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; }
+    return actx;
+  }
+
+  /* ---------- title-screen SFX — ported directly from Owldoku's Sound
+     module, unchanged, so the studio-splash sequence (blink, bulb hum,
+     glitch-out) sounds identical to the original. ---------- */
+
+  // a soft, rounded "marble keyboard" style thock: filtered sine/triangle
+  // body with a very brief noise-click transient on top for tactility.
+  function thock(opts){
+    const freq = opts.freq !== undefined ? opts.freq : 220;
+    const dur = opts.dur !== undefined ? opts.dur : 0.1;
+    const gain = opts.gain !== undefined ? opts.gain : 0.22;
+    const type = opts.type !== undefined ? opts.type : 'sine';
+    const filterFreq = opts.filterFreq !== undefined ? opts.filterFreq : 1800;
+    const click = opts.click !== undefined ? opts.click : true;
+    const glide = opts.glide !== undefined ? opts.glide : 0;
+    const c = ensureTitleActx();
+    if(!c) return;
+    const now = c.currentTime;
+
+    const osc = c.createOscillator();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    if(glide) osc.frequency.exponentialRampToValueAtTime(Math.max(40,freq+glide), now+dur*0.9);
+
+    const filt = c.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = filterFreq;
+    filt.Q.value = 0.7;
+
+    const g = c.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(gain, now + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    osc.connect(filt); filt.connect(g); g.connect(c.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+
+    if(click){
+      // tiny high-passed noise tick for a crisp marble-like attack
+      const bufSize = Math.floor(c.sampleRate * 0.012);
+      const buf = c.createBuffer(1, bufSize, c.sampleRate);
+      const data = buf.getChannelData(0);
+      for(let i=0;i<bufSize;i++){ data[i] = (Math.random()*2-1) * (1 - i/bufSize); }
+      const noise = c.createBufferSource();
+      noise.buffer = buf;
+      const nf = c.createBiquadFilter();
+      nf.type = 'highpass';
+      nf.frequency.value = 3200;
+      const ng = c.createGain();
+      ng.gain.setValueAtTime(gain*0.5, now);
+      ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+      noise.connect(nf); nf.connect(ng); ng.connect(c.destination);
+      noise.start(now);
+      noise.stop(now + 0.025);
+    }
+  }
+
+  // soft eyelid dip for the studio-splash blink — a low, round thock rather
+  // than a bright click, so it reads as a gentle blink not a UI tap
+  function titleBlink(){
+    thock({freq:300, dur:0.09, gain:0.12, type:'sine', filterFreq:1400, glide:-45, click:false});
+  }
+
+  // low, warm bulb-filament hum for the studio splash — two detuned low
+  // oscillators with a slow gain wobble, like a bulb warming up. Returns a
+  // handle with .stop() to fade it out on cue (e.g. when the glitch-out
+  // begins).
+  function titleBulbHumStart(){
+    const c = ensureTitleActx();
+    if(!c) return null;
+    const now = c.currentTime;
+
+    const osc1 = c.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.value = 88;
+    const osc2 = c.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.value = 88 * 1.5;
+
+    const filt = c.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 480;
+    filt.Q.value = 0.4;
+
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.045, now + 0.5);
+
+    // gentle filament-style wobble
+    const lfo = c.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 5.5;
+    const lfoGain = c.createGain();
+    lfoGain.gain.value = 0.01;
+    lfo.connect(lfoGain);
+    lfoGain.connect(g.gain);
+
+    osc1.connect(filt); osc2.connect(filt); filt.connect(g); g.connect(c.destination);
+    osc1.start(now); osc2.start(now); lfo.start(now);
+
+    let stopped = false;
+    return {
+      stop(fadeDur){
+        if(fadeDur === undefined) fadeDur = 0.25;
+        if(stopped) return;
+        stopped = true;
+        const t = c.currentTime;
+        g.gain.cancelScheduledValues(t);
+        g.gain.setValueAtTime(g.gain.value, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + fadeDur);
+        osc1.stop(t + fadeDur + 0.05);
+        osc2.stop(t + fadeDur + 0.05);
+        lfo.stop(t + fadeDur + 0.05);
+      }
+    };
+  }
+
+  // staticky, bug-zapper style burst for the studio-splash glitch-out: a
+  // stuttering noise bed plus a square-wave tone that jumps between
+  // erratic frequencies
+  function titleGlitchZap(){
+    const c = ensureTitleActx();
+    if(!c) return;
+    const now = c.currentTime;
+    const dur = 0.7;
+
+    const bufSize = Math.floor(c.sampleRate * dur);
+    const buf = c.createBuffer(1, bufSize, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++){ data[i] = Math.random()*2-1; }
+    const noise = c.createBufferSource();
+    noise.buffer = buf;
+    const nf = c.createBiquadFilter();
+    nf.type = 'bandpass';
+    nf.frequency.value = 3200;
+    nf.Q.value = 0.7;
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(0.0001, now);
+    const steps = 14;
+    for(let i=0;i<steps;i++){
+      const t = now + (i/steps)*dur;
+      const on = Math.random() > 0.3;
+      ng.gain.setValueAtTime(on ? (0.06 + Math.random()*0.09) : 0.0001, t);
+    }
+    ng.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    noise.connect(nf); nf.connect(ng); ng.connect(c.destination);
+    noise.start(now);
+    noise.stop(now + dur + 0.02);
+
+    const osc = c.createOscillator();
+    osc.type = 'square';
+    const of = c.createBiquadFilter();
+    of.type = 'lowpass';
+    of.frequency.value = 2400;
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, now);
+    const freqs = [160, 950, 210, 1300, 120, 700, 90, 480];
+    freqs.forEach((f,i)=>{
+      const t = now + (i/freqs.length)*dur;
+      osc.frequency.setValueAtTime(f, t);
+      og.gain.setValueAtTime(0.08, t);
+      og.gain.exponentialRampToValueAtTime(0.015, t + (dur/freqs.length)*0.8);
     });
+    og.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(of); of.connect(og); og.connect(c.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
   }
 
   /* =========================================================
@@ -1736,6 +1903,8 @@
   muteBtn.addEventListener('click', ()=>{
     state.muted = !state.muted;
     muteBtn.textContent = state.muted ? '🔇' : '🔊';
+    Music.setMuted(state.muted);
+    renderMusicPanel();
     saveState();
   });
 
@@ -1820,6 +1989,22 @@
       toggleMute(){
         if(!musicAvailable) return muted;
         muted = !muted;
+        if(audio){
+          if(muted){
+            audio.pause();
+          } else if(started){
+            if(!audio.src) loadCurrent(true);
+            else audio.play().catch(()=>{});
+          }
+        }
+        savePrefs();
+        return muted;
+      },
+      setMuted(v){
+        if(!musicAvailable) return muted;
+        v = !!v;
+        if(v === muted) return muted;
+        muted = v;
         if(audio){
           if(muted){
             audio.pause();
@@ -1961,30 +2146,33 @@
 
     // 1) fade the title screen to black
     titleBlackoutEl.classList.add('show');
-    beep(180, 0.05, 0.035);
 
-    // 2) once black fully covers the screen, swap in the studio splash and
-    // fade back up into it
+    let hum = null;
+
+    // 2) once black fully covers the screen, swap in the studio splash,
+    // fade back up into it, and start the bulb hum under the eyes
     setTimeout(function(){
       titleScreenEl.classList.add('scene-studio');
       titleBlackoutEl.classList.remove('show');
+      hum = titleBulbHumStart();
     }, 500);
 
     // 3) the studio credit fades in below the (already-static) eyes
     setTimeout(function(){ studioCreditEl.classList.add('show'); }, 1150);
 
-    // 4) blink once
+    // 4) blink once — identical timing/sound to Owldoku's title-intro blink
     setTimeout(function(){
       studioEyesEl.classList.add('blink-once');
-      setTimeout(function(){ beep(520, 0.04, 0.03); }, 390);
-      setTimeout(function(){ beep(520, 0.04, 0.03); }, 150 + 390);
+      setTimeout(function(){ titleBlink(); }, 390);       // first eye closes at ~78% of its 0.5s animation
+      setTimeout(function(){ titleBlink(); }, 150 + 390);  // second eye, offset by its 0.15s CSS delay
     }, 1750);
 
-    // 5) glitch out
+    // 5) glitch out — identical to Owldoku's title-intro glitch-out
     setTimeout(function(){
+      if(hum) hum.stop(0.15);
       studioEyesEl.classList.add('glitch-out');
       studioCreditEl.classList.add('glitch-out');
-      glitchZap();
+      titleGlitchZap();
     }, 2500);
 
     // 6) fade into the game
@@ -2052,6 +2240,7 @@
   const hadSave = (function(){ try{ return !!localStorage.getItem(SAVE_KEY); }catch(e){ return false; } })();
   loadState();
   muteBtn.textContent = state.muted ? '🔇' : '🔊';
+  Music.setMuted(state.muted);
   renderMusicPanel();
   updateKeypadLocks();
   renderExpr();

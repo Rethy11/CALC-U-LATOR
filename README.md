@@ -1,6 +1,6 @@
 # Welcome!
 
-Plasticine Games is a small independent game studio owned and operated by Shawn.Genji. What started as a hobby has grown into a passion project dedicated to making small, tactile games that are fun to fidget with — the kind of thing you open for “just a minute” and look up twenty minutes later.
+Plasticine Games is a small independent game studio owned and operated by Shawn.Genji. What started as a hobby has grown into a passion project dedicated to making small, tactile games that are fun to fidget with, the kind of thing you open for “just a minute” and look up twenty minutes later.
 
 Every game is designed, programmed, and maintained in my spare time. I care about the little details, so I put a lot of thought into responsive controls, satisfying feedback, handcrafted sound effects, and interfaces that feel good to poke at, even for something as ordinary as a calculator.
 
@@ -24,7 +24,7 @@ As a solo independent developer, updates happen as time allows, but every projec
 
 # Your Privacy
 
-CALC-U-LATOR stores your progress locally on your own device using your browser’s Local Storage — digits unlocked, tape history, score, and settings. Plasticine Games doesn’t have access to this information, and it’s never uploaded to any server.
+CALC-U-LATOR stores your progress locally on your own device using your browser’s Local Storage. Digits unlocked, tape history, score, and settings. Plasticine Games doesn’t have access to this information, and it’s never uploaded to any server.
 
 The site may show ads through Google AdSense or similar providers, which may collect information under their own privacy policies. See the full Privacy Policy for details.
 
@@ -45,4 +45,7 @@ CALC-U-LATOR is proprietary software. Portions of the source code may be publicl
 Plasticine Games provides its games and website “as is” without warranties of any kind. To the fullest extent permitted by Tennessee and applicable United States law, Plasticine Games shall not be liable for any damages arising from the use of this website or its games.
 
 This About page is provided for informational purposes and does not replace the Privacy Policy or Terms of Use.
+
+# Thank You!
+
 Thanks for stopping by Plasticine Games and giving CALC-U-LATOR a try. I hope mashing buttons on a calculator turns out to be more satisfying than it has any right to be.

@@ -136,6 +136,66 @@
     border-radius:6px; padding:4px 9px; font-size:0.85rem; cursor:pointer;
   }
   .mute-btn:hover{color:var(--text-light); border-color:var(--text-dim);}
+  .music-btn.on{color:var(--accent); border-color:var(--accent);}
+
+  /* ---------- Music (tape deck) ---------- */
+  .music-modal-card{max-width:320px; text-align:left;}
+  .music-lcd{
+    background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
+    border-radius:8px;
+    padding:10px 14px;
+    margin-bottom:16px;
+    box-shadow:inset 0 2px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579;
+    text-align:center;
+  }
+  .music-lcd-label{
+    font-family:'IBM Plex Mono'; font-size:0.58rem; letter-spacing:1.5px;
+    color:var(--lcd-text-dim); text-transform:uppercase; margin-bottom:2px;
+  }
+  .music-lcd-name{
+    font-family:'VT323', monospace; font-size:1.35rem; color:var(--lcd-text);
+    letter-spacing:0.5px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .music-transport{display:flex; justify-content:center; gap:8px; margin-bottom:16px;}
+  .music-tbtn{
+    width:42px; height:38px; border-radius:8px;
+    background:var(--case-lo); border:1px solid #423d35; color:var(--text-light);
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.95rem; cursor:pointer;
+    box-shadow:0 2px 0 rgba(0,0,0,0.3);
+    transition:background .15s, border-color .15s, color .15s;
+  }
+  .music-tbtn:hover:not(:disabled){background:#302c26;}
+  .music-tbtn:active:not(:disabled){transform:translateY(2px); box-shadow:none;}
+  .music-tbtn:disabled{opacity:0.4; cursor:not-allowed;}
+  .music-tbtn.active{border-color:var(--accent); color:var(--accent); background:rgba(127,174,94,0.15);}
+  .music-tbtn.muted{border-color:var(--danger); color:var(--danger); background:rgba(176,80,63,0.14);}
+  .music-volume-row{display:flex; align-items:center; gap:8px; margin-bottom:18px;}
+  .music-volume-row .music-vol-ic{font-size:0.8rem; color:var(--text-dim); flex:0 0 auto;}
+  .music-volume-row input[type="range"]{flex:1; accent-color:var(--accent);}
+  .music-song-label{
+    font-size:0.65rem; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;
+  }
+  .music-song-list{
+    display:flex; flex-direction:column; gap:6px;
+    max-height:220px; overflow-y:auto; overscroll-behavior:contain;
+    touch-action:pan-y;
+  }
+  .music-song-list, .music-song-list *{touch-action:pan-y;}
+  .music-song-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    width:100%; text-align:left;
+    background:var(--case); border:1px solid #423d35; border-radius:8px;
+    padding:9px 12px;
+    font-family:'IBM Plex Mono'; font-size:0.78rem; color:var(--text-light);
+    cursor:pointer;
+  }
+  .music-song-btn:hover{border-color:#5a534a;}
+  .music-song-btn.playing{border-color:var(--accent); background:rgba(127,174,94,0.14);}
+  .music-song-num{font-family:'IBM Plex Mono'; font-size:0.68rem; color:var(--text-dim); margin-right:8px;}
+  .music-song-note{color:var(--accent);}
+  .music-unavailable{font-size:0.75rem; color:var(--text-dim); text-align:center; padding:10px 0;}
 
   /* ---------- Layout ---------- */
   .layout{display:flex; justify-content:center;}
@@ -483,6 +543,7 @@
       <span><span class="power-led" id="powerLed"></span> AUTO</span>
       <span><b id="cpsReadout">+0</b>/sec</span>
       <button class="mute-btn" id="muteBtn" title="Toggle sound" aria-label="Toggle sound">🔊</button>
+      <button class="mute-btn music-btn on" id="musicBtn" title="Music" aria-label="Open music player">🎵</button>
     </div>
   </div>
 
@@ -595,6 +656,35 @@
       <span class="ascend-btn-label" id="ascendBtnLabel">HOLD TO ASCEND</span>
     </button>
     <div class="modal-ascend-note">hold for 2 seconds to confirm</div>
+  </div>
+</div>
+
+<!-- MUSIC MODAL (opens via the topbar music button) -->
+<div class="modal-overlay" id="musicModal" aria-hidden="true">
+  <div class="modal-card music-modal-card">
+    <button class="modal-close" id="musicModalClose" aria-label="Close">✕</button>
+    <div class="modal-title">Tape Deck</div>
+
+    <div class="music-lcd">
+      <div class="music-lcd-label">Now Playing</div>
+      <div class="music-lcd-name" id="musicNowName">&nbsp;</div>
+    </div>
+
+    <div class="music-transport">
+      <button type="button" class="music-tbtn" id="musicPrevBtn" aria-label="Previous track" title="Previous track"></button>
+      <button type="button" class="music-tbtn" id="musicNextBtn" aria-label="Next track" title="Next track"></button>
+      <button type="button" class="music-tbtn" id="musicLoopBtn" aria-label="Loop current track" title="Loop current track"></button>
+      <button type="button" class="music-tbtn" id="musicMuteBtn" aria-label="Mute music" title="Mute music">🔊</button>
+    </div>
+
+    <div class="music-volume-row">
+      <span class="music-vol-ic">🔈</span>
+      <input type="range" id="musicVolume" min="0" max="100" value="50" aria-label="Music volume">
+      <span class="music-vol-ic">🔊</span>
+    </div>
+
+    <div class="music-song-label">Tracks</div>
+    <div class="music-song-list" id="musicSongList"></div>
   </div>
 </div>
 
@@ -957,6 +1047,7 @@
   const cpsReadoutEl = document.getElementById('cpsReadout');
   const powerLedEl = document.getElementById('powerLed');
   const muteBtn = document.getElementById('muteBtn');
+  const musicBtn = document.getElementById('musicBtn');
   const keypadEl = document.getElementById('keypad');
   const solveBtnEl = document.getElementById('keypad').querySelector('.btn-c');
 
@@ -978,6 +1069,16 @@
   const ascendTotalPtsEl = document.getElementById('ascendTotalPts');
   const ascendBtnEl = document.getElementById('ascendBtn');
   const ascendBtnFillEl = document.getElementById('ascendBtnFill');
+
+  const musicModalEl = document.getElementById('musicModal');
+  const musicModalCloseBtn = document.getElementById('musicModalClose');
+  const musicNowNameEl = document.getElementById('musicNowName');
+  const musicPrevBtn = document.getElementById('musicPrevBtn');
+  const musicNextBtn = document.getElementById('musicNextBtn');
+  const musicLoopBtn = document.getElementById('musicLoopBtn');
+  const musicMuteBtn = document.getElementById('musicMuteBtn');
+  const musicVolumeEl = document.getElementById('musicVolume');
+  const musicSongListEl = document.getElementById('musicSongList');
 
   /* =========================================================
      TAPE LOG
@@ -1447,6 +1548,203 @@
   });
 
   /* =========================================================
+     MUSIC ENGINE
+     A small fixed playlist of real mp3s (no generative synthesis,
+     no sample decoding) — one shared <audio> element does the work.
+  ========================================================= */
+  const Music = (function(){
+    const SONGS = [
+      { name:'When I Sleep',      src:'music/WHEN_I_SLEEP.mp3' },
+      { name:'In My Head',        src:'music/In_My_Head.mp3' },
+      { name:'Avelina Sorv',      src:'music/AVELINA_SORV.mp3' },
+      { name:'Bougie In The Bag', src:'music/BOUGIE_IN_THE_BAG.mp3' }
+    ];
+    const musicAvailable = SONGS.length > 0;
+
+    const MUSIC_KEY = 'calcClicker.music.v1';
+    let songIndex = 0, loopSong = false, muted = false, volume = 0.5, started = false;
+
+    (function restorePrefs(){
+      try{
+        const raw = localStorage.getItem(MUSIC_KEY);
+        if(!raw) return;
+        const prefs = JSON.parse(raw);
+        if(typeof prefs.songIndex === 'number' && SONGS.length){
+          const n = SONGS.length;
+          songIndex = ((prefs.songIndex % n) + n) % n;
+        }
+        if(typeof prefs.loopSong === 'boolean') loopSong = prefs.loopSong;
+        if(typeof prefs.muted === 'boolean') muted = prefs.muted;
+        if(typeof prefs.volume === 'number') volume = Math.max(0, Math.min(1, prefs.volume));
+      }catch(e){ /* storage unavailable or corrupt — ignore */ }
+    })();
+    function savePrefs(){
+      try{ localStorage.setItem(MUSIC_KEY, JSON.stringify({ songIndex, loopSong, muted, volume })); }
+      catch(e){ /* storage unavailable — ignore */ }
+    }
+
+    let songChangeListeners = [];
+    function fireSongChange(){ songChangeListeners.forEach(fn=>{ try{ fn(); }catch(e){} }); }
+
+    const audio = musicAvailable ? new Audio() : null;
+    if(audio){
+      audio.preload = 'none';
+      audio.loop = loopSong;
+      audio.volume = volume;
+      // loop=true means the browser repeats the track itself and never
+      // fires 'ended' — this only runs for a track playing without loop on.
+      audio.addEventListener('ended', ()=>{ next(); });
+    }
+
+    function currentSong(){ return SONGS[songIndex] || null; }
+
+    function loadCurrent(playAfter){
+      const song = currentSong();
+      if(!song || !audio) return;
+      audio.src = song.src;
+      audio.loop = loopSong;
+      audio.volume = volume;
+      if(playAfter){
+        audio.play().catch(()=>{ /* blocked until a real user gesture — harmless, retried on the next one */ });
+      }
+    }
+
+    function switchSong(idx){
+      const n = SONGS.length;
+      songIndex = ((idx % n) + n) % n;
+      loadCurrent(started && !muted);
+      savePrefs();
+      fireSongChange();
+    }
+    function next(){ switchSong(songIndex + 1); }
+    function prev(){ switchSong(songIndex - 1); }
+
+    return {
+      autoStart(){
+        if(!musicAvailable || started) return;
+        started = true;
+        if(!muted) loadCurrent(true);
+      },
+      toggleMute(){
+        if(!musicAvailable) return muted;
+        muted = !muted;
+        if(audio){
+          if(muted){
+            audio.pause();
+          } else if(started){
+            if(!audio.src) loadCurrent(true);
+            else audio.play().catch(()=>{});
+          }
+        }
+        savePrefs();
+        return muted;
+      },
+      setVolume(v){
+        if(!musicAvailable) return;
+        volume = Math.max(0, Math.min(1, v));
+        if(audio) audio.volume = volume;
+        savePrefs();
+      },
+      toggleLoop(){
+        if(!musicAvailable) return loopSong;
+        loopSong = !loopSong;
+        if(audio) audio.loop = loopSong;
+        savePrefs();
+        return loopSong;
+      },
+      next(){ if(musicAvailable) next(); },
+      prev(){ if(musicAvailable) prev(); },
+      selectSong(i){ if(musicAvailable) switchSong(i); },
+      getSongs(){ return musicAvailable ? SONGS.map(s => ({ name: s.name })) : []; },
+      isAvailable(){ return musicAvailable; },
+      onSongChange(fn){ songChangeListeners.push(fn); },
+      getState(){
+        const song = currentSong();
+        return {
+          available: musicAvailable,
+          songIndex, songName: song ? song.name : 'Music unavailable',
+          muted: musicAvailable ? muted : true, loop: loopSong, volume
+        };
+      }
+    };
+  })();
+
+  /* =========================================================
+     MUSIC PANEL: DOM wiring for the tape-deck modal
+     (playback logic itself lives in the Music module above)
+  ========================================================= */
+  const ICON_SKIP_PREV = '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="0.6"/><polygon points="18,5 18,19 8,12"/></svg>';
+  const ICON_SKIP_NEXT = '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="currentColor"><polygon points="6,5 6,19 16,12"/><rect x="16.4" y="5" width="2.6" height="14" rx="0.6"/></svg>';
+  const ICON_REPEAT = '<svg viewBox="0 0 24 24" width="1.05em" height="1.05em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h13a2.5 2.5 0 0 1 2.5 2.5v2"/><path d="M9 4.5 4 7.5l5 3"/><path d="M20 16.5H7A2.5 2.5 0 0 1 4.5 14v-2"/><path d="M15 19.5l5-3-5-3"/></svg>';
+  musicPrevBtn.innerHTML = ICON_SKIP_PREV;
+  musicNextBtn.innerHTML = ICON_SKIP_NEXT;
+  musicLoopBtn.innerHTML = ICON_REPEAT;
+
+  function renderMusicPanel(){
+    const s = Music.getState();
+    musicNowNameEl.textContent = s.songName;
+    musicMuteBtn.textContent = s.muted ? '🔇' : '🔊';
+    musicMuteBtn.classList.toggle('muted', s.muted);
+    musicMuteBtn.title = s.muted ? 'Unmute music' : 'Mute music';
+    musicMuteBtn.setAttribute('aria-label', s.muted ? 'Unmute music' : 'Mute music');
+    musicLoopBtn.classList.toggle('active', s.loop);
+    musicLoopBtn.title = s.loop ? 'Looping current track' : 'Loop current track';
+    musicVolumeEl.value = Math.round(s.volume * 100);
+    musicBtn.textContent = s.muted ? '🔇' : '🎵';
+    musicBtn.classList.toggle('on', !s.muted);
+    musicBtn.style.display = s.available ? '' : 'none';
+    [musicPrevBtn, musicNextBtn, musicLoopBtn, musicMuteBtn, musicVolumeEl].forEach(el=>{
+      el.disabled = !s.available;
+    });
+    if(!s.available){
+      musicSongListEl.innerHTML = '<div class="music-unavailable">No tracks loaded this session.</div>';
+      return;
+    }
+    musicSongListEl.innerHTML = Music.getSongs().map((song,i)=>
+      '<button type="button" class="music-song-btn' + (i===s.songIndex?' playing':'') + '" data-i="' + i + '">' +
+        '<span><span class="music-song-num">' + String(i+1).padStart(2,'0') + '</span>' + song.name + '</span>' +
+        (i===s.songIndex ? '<span class="music-song-note" aria-hidden="true">♪</span>' : '') +
+      '</button>'
+    ).join('');
+  }
+
+  function openMusicModal(){
+    if(!Music.isAvailable()) return;
+    Music.autoStart();
+    renderMusicPanel();
+    musicModalEl.classList.add('open');
+    musicModalEl.setAttribute('aria-hidden', 'false');
+  }
+  function closeMusicModal(){
+    musicModalEl.classList.remove('open');
+    musicModalEl.setAttribute('aria-hidden', 'true');
+  }
+
+  musicBtn.addEventListener('click', openMusicModal);
+  musicModalCloseBtn.addEventListener('click', closeMusicModal);
+  musicModalEl.addEventListener('click', (e)=>{ if(e.target === musicModalEl) closeMusicModal(); });
+  musicPrevBtn.addEventListener('click', ()=>{ Music.prev(); renderMusicPanel(); });
+  musicNextBtn.addEventListener('click', ()=>{ Music.next(); renderMusicPanel(); });
+  musicLoopBtn.addEventListener('click', ()=>{ Music.toggleLoop(); renderMusicPanel(); });
+  musicMuteBtn.addEventListener('click', ()=>{ Music.toggleMute(); renderMusicPanel(); });
+  musicVolumeEl.addEventListener('input', ()=>{ Music.setVolume(musicVolumeEl.value/100); });
+  musicSongListEl.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.music-song-btn');
+    if(!btn) return;
+    Music.selectSong(parseInt(btn.dataset.i, 10));
+    renderMusicPanel();
+  });
+  Music.onSongChange(renderMusicPanel);
+
+  // Browsers block audio autoplay until a real user gesture happens on the
+  // page. This game has no title/splash screen to hang that gesture off of
+  // (unlike Owldoku), so start music on the very first tap/click anywhere.
+  document.addEventListener('pointerdown', function firstGesture(){
+    document.removeEventListener('pointerdown', firstGesture);
+    Music.autoStart();
+  }, { once:true });
+
+  /* =========================================================
      GAME LOOP
   ========================================================= */
   let lastTapeStamp = 0;
@@ -1506,6 +1804,7 @@
   const hadSave = (function(){ try{ return !!localStorage.getItem(SAVE_KEY); }catch(e){ return false; } })();
   loadState();
   muteBtn.textContent = state.muted ? '🔇' : '🔊';
+  renderMusicPanel();
   updateKeypadLocks();
   renderExpr();
   refreshAll();

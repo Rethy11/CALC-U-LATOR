@@ -2225,6 +2225,11 @@
     function next(){ switchSong(songIndex + 1); }
     function prev(){ switchSong(songIndex - 1); }
 
+    // Tracks whether we paused playback ourselves because the tab/app went
+    // into the background, so we only resume what we silenced — never force
+    // playback back on if the user had muted or never started it.
+    let hiddenPaused = false;
+
     return {
       autoStart(){
         if(!musicAvailable || started) return;
@@ -2277,6 +2282,20 @@
       next(){ if(musicAvailable) next(); },
       prev(){ if(musicAvailable) prev(); },
       selectSong(i){ if(musicAvailable) switchSong(i); },
+      pauseForHidden(){
+        if(!musicAvailable || !audio) return;
+        if(!audio.paused){
+          hiddenPaused = true;
+          audio.pause();
+        }
+      },
+      resumeFromHidden(){
+        if(!musicAvailable || !audio) return;
+        if(hiddenPaused){
+          hiddenPaused = false;
+          if(!muted && started) audio.play().catch(()=>{ /* blocked — harmless, retried on next gesture */ });
+        }
+      },
       getSongs(){ return musicAvailable ? SONGS.map(s => ({ name: s.name })) : []; },
       isAvailable(){ return musicAvailable; },
       onSongChange(fn){ songChangeListeners.push(fn); },
@@ -2476,8 +2495,15 @@
   setInterval(maybePrintAutoTape, 1400);
   setInterval(flushAutoGainPopup, 1000);
   setInterval(saveState, 5000);
-  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveState(); });
-  window.addEventListener('pagehide', saveState);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      Music.pauseForHidden();
+      saveState();
+    } else {
+      Music.resumeFromHidden();
+    }
+  });
+  window.addEventListener('pagehide', ()=>{ Music.pauseForHidden(); saveState(); });
   window.addEventListener('beforeunload', saveState);
 
   /* =========================================================

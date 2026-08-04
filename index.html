@@ -462,16 +462,15 @@
   }
   /* ---------- Hint row: static hint text + tiny icons of owned Auto-Solvers,
      sharing a single fixed-height row of the LCD. This row's box never
-     grows: if the icons need more room than fits on one line, the whole
-     row (text + icons together) is scaled down by JS just enough to keep
-     everything inside the original height budget, rather than the LCD
+     grows: if the icons need more room than fits on one line, they shrink
+     and/or wrap onto a second row (see fitHintRow), using slack that's
+     already inside the row's own height budget, rather than the LCD
      (or the calculator) gaining any extra verticality. ---------- */
   .lcd-hint-row{
-    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    display:flex; flex-wrap:nowrap; align-items:center; justify-content:flex-start;
     gap:2px 6px;
     margin-top:2px;
-    height:14px; overflow:hidden;
-    transform-origin:100% 0%;
+    height:22px; overflow:hidden;
   }
   .lcd-hint{
     font-family:'IBM Plex Mono'; font-size:0.62rem; color:var(--lcd-text-dim);
@@ -479,21 +478,45 @@
     flex:0 1 auto; min-width:0;
   }
   .lcd-solver-tray{
-    display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end;
+    display:flex; flex-wrap:nowrap; align-items:center; justify-content:flex-end;
     gap:3px 4px;
-    flex:1 1 auto; min-width:0;
+    flex:0 1 auto; min-width:0;
+    margin-left:auto;
+    overflow:hidden;
   }
   .lcd-solver-tray:empty{ flex:0 0 0; }
   .solver-icon{
-    width:15px; height:15px; flex:0 0 auto;
+    width:calc(15px * var(--icon-scale, 1)); height:calc(15px * var(--icon-scale, 1)); flex:0 0 auto;
     display:inline-flex; align-items:center; justify-content:center;
     color:#33401f;
     position:relative;
-    transition:width .2s ease, height .2s ease;
   }
   .solver-icon svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .icon-badge{
+    position:absolute; right:0; bottom:0;
+    min-width:1.1em;
+    font-family:'IBM Plex Mono'; font-size:calc(0.44rem * var(--icon-scale, 1));
+    line-height:1.2; text-align:center;
+    color:var(--lcd-bg-dim);
+    background:#33401f;
+    border-radius:2.5px;
+    padding:0 1.5px;
+    pointer-events:none;
+  }
   .lcd-solver-tray.compact{ gap:2px 3px; }
-  .lcd-solver-tray.compact .solver-icon{ width:10px; height:10px; }
+  .lcd-solver-tray.compact .solver-icon{ width:calc(10px * var(--icon-scale, 1)); height:calc(10px * var(--icon-scale, 1)); }
+  /* Wrap mode: once a single line of (shrunk) icons no longer fits the
+     available width, they wrap onto a second row instead of folding into a
+     "+N" badge. This only kicks in once icons are small enough that two
+     stacked rows still fit inside the hint row's fixed height — see
+     fitHintRow for the height check that decides when that's true. The tray
+     is given an explicit width (matching the space it was assigned) so the
+     browser actually wraps instead of growing wider to fit everything on
+     one line. */
+  .lcd-solver-tray.wrap{
+    flex-wrap:wrap;
+    align-content:flex-start;
+  }
 
   /* Each building's icon animates only the part of it that would actually
      move — the icon as a whole stays put in its slot. */
@@ -1909,7 +1932,7 @@
   function renderExpr(){
     lcdExprEl.textContent = currentExprDisplay();
     lcdExprEl.scrollLeft = 0;
-    lcdHintEl.style.visibility = state.everClicked ? 'hidden' : 'visible';
+    lcdHintEl.style.display = state.everClicked ? 'none' : '';
   }
 
   function updateKeypadLocks(){
@@ -2191,14 +2214,31 @@
 
   /* =========================================================
      SOLVER TRAY: detailed animated icons on the LCD's bottom row, one
-     per owned Auto-Solver (capped per type). Each icon is placed at a
-     small fixed random offset (not animated — it just sits there), and
-     its moving parts (a lever, gear, beads, ...) animate on a slightly
-     randomized delay so a row of the same icon doesn't move in lockstep.
-     Rebuilt only when ownership actually changes, not every tick.
+     "stack" per denomination of each owned Auto-Solver type. Rather than
+     one icon per unit (which floods the row fast), a building's count is
+     broken into denominations — 100, 50, 25, 10, 5, 1 — greedily from
+     largest to smallest, same as making change. Any icon representing more
+     than one unit carries a small badge with that count (e.g. once you own
+     5, they collapse into a single icon badged "5"; at 10, two would-be "5"
+     icons collapse into one badged "10"; and so on through 25/50/100).
+     Each icon is placed at a small fixed random offset (not animated — it
+     just sits there), and its moving parts (a lever, gear, beads, ...)
+     animate on a slightly randomized delay so a row of the same icon
+     doesn't move in lockstep. Rebuilt only when ownership actually
+     changes, not every tick.
   ========================================================= */
-  const SOLVER_TRAY_CAP_PER_TYPE = 6;   // avoid one huge building flooding the row
-  const SOLVER_TRAY_COMPACT_AT = 10;    // total icon count that triggers the smaller size
+  const ICON_DENOMINATIONS = [100, 50, 25, 10, 5, 1];
+  function decomposeIconCount(count){
+    const denoms = [];
+    let remaining = count;
+    for(const d of ICON_DENOMINATIONS){
+      while(remaining >= d){
+        denoms.push(d);
+        remaining -= d;
+      }
+    }
+    return denoms;
+  }
   let lastSolverTraySignature = '';
 
   function renderSolverTray(){
@@ -2206,50 +2246,99 @@
     if(signature === lastSolverTraySignature) return;
     lastSolverTraySignature = signature;
 
-    const frag = document.createDocumentFragment();
-    let totalIcons = 0;
+    let entries = [];
     buildingsData.forEach(b=>{
       if(b.count <= 0) return;
-      const svg = SOLVER_ICONS[b.id];
-      if(!svg) return;
-      const n = Math.min(b.count, SOLVER_TRAY_CAP_PER_TYPE);
-      for(let i=0;i<n;i++){
-        const icon = document.createElement('span');
-        icon.className = 'solver-icon ico-' + b.id;
-        icon.title = b.name;
-        icon.innerHTML = svg;
-        icon.style.top = (Math.random()*6 - 3).toFixed(1) + 'px';
-        icon.style.marginLeft = (Math.random()*3).toFixed(1) + 'px';
-        icon.style.setProperty('--stagger', (Math.random()*1.4).toFixed(2) + 's');
-        frag.appendChild(icon);
-        totalIcons++;
-      }
+      if(!SOLVER_ICONS[b.id]) return;
+      decomposeIconCount(b.count).forEach(denom => entries.push({building:b, denom}));
     });
+
+    const frag = document.createDocumentFragment();
+    entries.forEach(({building:b, denom})=>{
+      const icon = document.createElement('span');
+      icon.className = 'solver-icon ico-' + b.id;
+      icon.title = b.name + (denom > 1 ? ' ×' + denom : '');
+      icon.innerHTML = SOLVER_ICONS[b.id];
+      if(denom > 1){
+        const badge = document.createElement('span');
+        badge.className = 'icon-badge';
+        badge.textContent = denom;
+        icon.appendChild(badge);
+      }
+      // The small random vertical jitter below is purely decorative (keeps a
+      // row of identical icons from looking too mechanically aligned), but on
+      // a badged icon it can nudge the corner badge just far enough to clip
+      // against the row's fixed-height overflow:hidden. Badged icons skip it
+      // and sit at their natural position instead.
+      icon.style.top = denom > 1 ? '0px' : (Math.random()*3 - 1.5).toFixed(1) + 'px';
+      icon.style.marginLeft = (Math.random()*3).toFixed(1) + 'px';
+      icon.style.setProperty('--stagger', (Math.random()*1.4).toFixed(2) + 's');
+      frag.appendChild(icon);
+    });
+
     lcdSolverTrayEl.innerHTML = '';
     lcdSolverTrayEl.appendChild(frag);
-    lcdSolverTrayEl.classList.toggle('compact', totalIcons >= SOLVER_TRAY_COMPACT_AT);
     fitHintRow();
   }
 
   /* The hint row has a fixed height and can never grow the LCD/calculator.
-     If the hint text + solver icons don't all fit on that one line at
-     normal size (i.e. the icons would wrap to a second row), scale the
-     entire row down just enough for everything to fit back inside the
-     original height budget, instead of letting the row get taller. */
-  const HINT_ROW_MIN_SCALE = 0.55;
+     Sizing is chosen by actually measuring what fits, each step only used if
+     the previous one genuinely doesn't fit — so icons are always as large as
+     the available space allows, never shrunk pre-emptively:
+       1. Full size (15px), single line. If it fits, stop here.
+       2. "Compact" size (10px, tighter gaps), single line. If that fits,
+          stop here.
+       3. Still compact, but wrapped onto a second row. At compact size (and
+          smaller) the icons are shorter than the row's own height, which
+          leaves slack above and below them on a single line; wrapping lets
+          a second row use that same slack instead of growing the row. Stop
+          here once the wrapped content's height fits the row's budget.
+       4. If two rows at compact size are still too tall, shrink further via
+          --icon-scale (still wrapped), down to a minimum, as a last resort
+          for very large collections. */
+  const HINT_ROW_MIN_SCALE = 0.45;
+  const HINT_ROW_HEIGHT = 22; // px — must match .lcd-hint-row's fixed height
   let hintFitRAF = null;
 
   function fitHintRow(){
-    if(!lcdHintRowEl) return;
-    lcdHintRowEl.style.transform = 'none';
-    const boxH = lcdHintRowEl.clientHeight;
-    const naturalH = lcdHintRowEl.scrollHeight;
-    if(boxH > 0 && naturalH > boxH){
-      const scale = Math.max(HINT_ROW_MIN_SCALE, boxH / naturalH);
-      lcdHintRowEl.style.transform = 'scale(' + scale.toFixed(3) + ')';
-    } else {
-      lcdHintRowEl.style.transform = '';
+    if(!lcdSolverTrayEl) return;
+    lcdSolverTrayEl.classList.remove('compact', 'wrap');
+    lcdSolverTrayEl.style.removeProperty('--icon-scale');
+    lcdSolverTrayEl.style.removeProperty('width');
+    if(!lcdSolverTrayEl.children.length) return;
+
+    let available = lcdSolverTrayEl.clientWidth;
+    if(available <= 0) return;
+
+    if(lcdSolverTrayEl.scrollWidth <= available) return; // full size, single line, fits
+
+    lcdSolverTrayEl.classList.add('compact');
+    // Switching to compact shrinks the tray's own preferred (flex-basis) width,
+    // which lets the flex row give some space back from the hint text. Re-measure
+    // here instead of reusing the pre-compact value, or later checks end up
+    // comparing against a stale, too-small width.
+    available = lcdSolverTrayEl.clientWidth;
+    if(lcdSolverTrayEl.scrollWidth <= available) return; // compact, single line, fits
+
+    // Single line compact doesn't fit: wrap onto a second row instead of
+    // folding overflow into a badge. Give the tray an explicit width (the
+    // space it was actually assigned) so the browser wraps instead of just
+    // growing wider to keep everything on one line.
+    lcdSolverTrayEl.style.width = available + 'px';
+    lcdSolverTrayEl.classList.add('wrap');
+    if(lcdSolverTrayEl.scrollHeight <= HINT_ROW_HEIGHT) return; // two rows at compact size fit
+
+    // Two rows at compact size are still too tall: shrink further (still
+    // wrapped) until the wrapped content's height fits the row's budget.
+    let scale = 1;
+    while(scale > HINT_ROW_MIN_SCALE){
+      scale = Math.max(HINT_ROW_MIN_SCALE, scale - 0.05);
+      lcdSolverTrayEl.style.setProperty('--icon-scale', scale.toFixed(3));
+      if(lcdSolverTrayEl.scrollHeight <= HINT_ROW_HEIGHT) return;
     }
+    // At minimum scale, an extreme collection can still exceed the row's
+    // height budget. The tray's own overflow:hidden (and the row's) quietly
+    // clips anything beyond that, rather than the row growing.
   }
 
   function requestHintFit(){

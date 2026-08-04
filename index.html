@@ -1273,6 +1273,7 @@
     {id:'forge',    name:'Factorial Forge',  exprRaw:'5!',    exprShow:'5 !',     baseCost:48000,          growth:1.11, count:0, req:{n:['5'],      o:['!']},     flavor:'Every possibility, multiplied.'},
     {id:'power',    name:'Power Coil',       exprRaw:'6!',    exprShow:'6 !',     baseCost:648000,         growth:1.11, count:0, req:{n:['6'],      o:['!']},     flavor:'Numbers raised to new heights.'},
     {id:'recursion',name:'Recursion Engine', exprRaw:'3!!*7', exprShow:'3 !! × 7', baseCost:3750000,       growth:1.115,count:0, req:{n:['3','7'],  o:['!','*']}, flavor:'Isn’t that just 7!? Shut up, nerd.'},
+    {id:'octafact', name:'Octafactorial Rig',exprRaw:'8!*4',  exprShow:'8! × 4',  baseCost:100000000,      growth:1.117,count:0, req:{n:['8','4'],  o:['!','*']}, flavor:'161,280 reasons to keep going.'},
     {id:'quantum',  name:'Quantum Solver',   exprRaw:'7^7',   exprShow:'7 ^ 7',   baseCost:3000000000,     growth:1.12, count:0, req:{n:['7'],      o:['^']},     flavor:'Solves before you finish asking.'},
     {id:'infinity', name:'Infinity Engine',  exprRaw:'9!*9',  exprShow:'9! × 9',  baseCost:35000000000,    growth:1.13, count:0, req:{n:['9'],      o:['!','*']}, flavor:'Approaches the unapproachable.'},
     {id:'oracle',   name:'The Oracle',       exprRaw:'9^9',   exprShow:'9 ^ 9',   baseCost:11000000000000, growth:1.14, count:0, req:{n:['9','0'],  o:['^']},     flavor:'It has already computed this.'},
@@ -1335,6 +1336,14 @@
         '<rect x="0.5" y="10.6" width="7" height="1.6" rx="0.6" fill="currentColor" opacity="0.85"/>' +
         '<rect x="1.5" y="8.8" width="5" height="1.6" rx="0.6" fill="currentColor" opacity="0.85"/>' +
         '<rect class="hanoi-disk" x="2.3" y="7" width="3.4" height="1.6" rx="0.6" fill="currentColor"/>' +
+      '</svg>',
+    octafact:
+      '<svg viewBox="0 0 16 16">' +
+        '<rect x="1.2" y="1.2" width="13.6" height="13.6" rx="2" fill="none" stroke="currentColor" stroke-width="0.9" opacity="0.4"/>' +
+        '<g class="octa-spin">' +
+          '<path d="M8 3.4 12.6 8 8 12.6 3.4 8z" fill="none" stroke="currentColor" stroke-width="1"/>' +
+        '</g>' +
+        '<text x="8" y="10.1" text-anchor="middle" font-size="5.2" font-family="IBM Plex Mono, monospace" fill="currentColor">x4</text>' +
       '</svg>',
     quantum:
       '<svg viewBox="0 0 16 16">' +
@@ -1904,9 +1913,23 @@
      price compares to the Recursion Engine's base price.
   ========================================================= */
   const recursionDef = buildingsData.find(b => b.id === 'recursion');
+  const oracleDef = buildingsData.find(b => b.id === 'oracle');
   const RECURSION_POINTS_PER_UNIT = 0.5;
+  const ORACLE_POINTS_PER_UNIT = 5;
+  // Past the Recursion Engine, straight cost-ratio scaling would blow up
+  // absurdly (the Oracle's raw cost is ~2.9 million times Recursion's), so
+  // solvers beyond it switch from linear to logarithmic growth instead —
+  // still increasing with cost, but with steadily decaying returns. The
+  // slope is solved so the curve passes exactly through the Oracle at
+  // ORACLE_POINTS_PER_UNIT, picking up smoothly from Recursion's 0.5.
+  const POST_RECURSION_LOG_SLOPE = (ORACLE_POINTS_PER_UNIT - RECURSION_POINTS_PER_UNIT) /
+    Math.log(oracleDef.baseCost / recursionDef.baseCost);
   function pointsPerUnit(b){
-    return (b.baseCost / recursionDef.baseCost) * RECURSION_POINTS_PER_UNIT;
+    if(b.baseCost <= recursionDef.baseCost){
+      return (b.baseCost / recursionDef.baseCost) * RECURSION_POINTS_PER_UNIT;
+    }
+    return RECURSION_POINTS_PER_UNIT +
+      POST_RECURSION_LOG_SLOPE * Math.log(b.baseCost / recursionDef.baseCost);
   }
   function calcAscensionGain(){
     return buildingsData.reduce((sum,b) => sum + b.count * pointsPerUnit(b), 0);

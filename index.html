@@ -1899,13 +1899,14 @@
   /* =========================================================
      ASCENSION / MEMORY POINTS
      Every Auto-Solver owned converts into permanent points on ascend.
-     The Oracle is worth 1 point per unit; every other solver is worth
-     a fraction of that, based on how its base price compares to The
-     Oracle's base price.
+     The Recursion Engine is worth 0.5 points per unit; every other
+     solver's value is scaled proportionally, based on how its base
+     price compares to the Recursion Engine's base price.
   ========================================================= */
-  const oracleDef = buildingsData.find(b => b.id === 'oracle');
+  const recursionDef = buildingsData.find(b => b.id === 'recursion');
+  const RECURSION_POINTS_PER_UNIT = 0.5;
   function pointsPerUnit(b){
-    return b.baseCost / oracleDef.baseCost;
+    return (b.baseCost / recursionDef.baseCost) * RECURSION_POINTS_PER_UNIT;
   }
   function calcAscensionGain(){
     return buildingsData.reduce((sum,b) => sum + b.count * pointsPerUnit(b), 0);

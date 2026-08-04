@@ -616,6 +616,25 @@
     88%, 100% { transform:translate(0,0); }          /* resting on peg 1 */
   }
 
+  /* Octafactorial Rig: eight tentacles ripple in a traveling wave, each
+     pinned at its attachment point to the mantle rather than drifting. */
+  .solver-icon.ico-octafact .tentacle{
+    transform-box:fill-box; transform-origin:50% 0%;
+    animation:tentacleWave 1.8s ease-in-out infinite;
+  }
+  .solver-icon.ico-octafact .tentacle-1{ animation-delay:var(--stagger, 0s); }
+  .solver-icon.ico-octafact .tentacle-2{ animation-delay:calc(var(--stagger, 0s) + 0.09s); }
+  .solver-icon.ico-octafact .tentacle-3{ animation-delay:calc(var(--stagger, 0s) + 0.18s); }
+  .solver-icon.ico-octafact .tentacle-4{ animation-delay:calc(var(--stagger, 0s) + 0.27s); }
+  .solver-icon.ico-octafact .tentacle-5{ animation-delay:calc(var(--stagger, 0s) + 0.27s); }
+  .solver-icon.ico-octafact .tentacle-6{ animation-delay:calc(var(--stagger, 0s) + 0.18s); }
+  .solver-icon.ico-octafact .tentacle-7{ animation-delay:calc(var(--stagger, 0s) + 0.09s); }
+  .solver-icon.ico-octafact .tentacle-8{ animation-delay:var(--stagger, 0s); }
+  @keyframes tentacleWave{
+    0%,100%{ transform:rotate(-7deg); }
+    50%{ transform:rotate(7deg); }
+  }
+
   /* Quantum Solver: each orbit ring (with its electron) spins around the
      fixed nucleus at its own rate — literal orbiting, not swaying. */
   .solver-icon.ico-quantum .orbit{ transform-box:fill-box; transform-origin:50% 50%; }
@@ -1339,11 +1358,19 @@
       '</svg>',
     octafact:
       '<svg viewBox="0 0 16 16">' +
-        '<rect x="1.2" y="1.2" width="13.6" height="13.6" rx="2" fill="none" stroke="currentColor" stroke-width="0.9" opacity="0.4"/>' +
-        '<g class="octa-spin">' +
-          '<path d="M8 3.4 12.6 8 8 12.6 3.4 8z" fill="none" stroke="currentColor" stroke-width="1"/>' +
-        '</g>' +
-        '<text x="8" y="10.1" text-anchor="middle" font-size="5.2" font-family="IBM Plex Mono, monospace" fill="currentColor">x4</text>' +
+        '<g class="tentacle tentacle-1"><path d="M2.6 8.9C1.7 10.5 0.9 12.2 1.2 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-2"><path d="M4.0 9.5C3.5 11.3 3.2 13.1 2.7 15.3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-3"><path d="M5.5 9.8C5.3 11.7 5.5 13.4 4.7 15.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-4"><path d="M6.9 10C6.9 11.9 7.3 13.5 6.6 15.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-5"><path d="M9.1 10C9.1 11.9 8.7 13.5 9.4 15.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-6"><path d="M10.5 9.8C10.7 11.7 10.5 13.4 11.3 15.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-7"><path d="M12.0 9.5C12.5 11.3 12.8 13.1 13.3 15.3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<g class="tentacle tentacle-8"><path d="M13.4 8.9C14.3 10.5 15.1 12.2 14.8 15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></g>' +
+        '<ellipse cx="8" cy="6" rx="4.6" ry="4" fill="currentColor"/>' +
+        '<circle cx="6.1" cy="5.6" r="1" fill="var(--lcd-bg)"/>' +
+        '<circle cx="9.9" cy="5.6" r="1" fill="var(--lcd-bg)"/>' +
+        '<circle class="eye-pupil" cx="6.35" cy="5.75" r="0.42" fill="currentColor"/>' +
+        '<circle class="eye-pupil" cx="10.15" cy="5.75" r="0.42" fill="currentColor"/>' +
       '</svg>',
     quantum:
       '<svg viewBox="0 0 16 16">' +

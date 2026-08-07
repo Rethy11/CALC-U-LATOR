@@ -681,6 +681,105 @@
   }
   .lcd.err .lcd-score{color:var(--danger);}
 
+  /* ---------- Dino cameo + minigame: a tiny monochrome pixel dino drawn
+     entirely out of ink-colored rectangles, so it reads like a native LCD
+     sprite rather than a bolted-on asset. The cameo walks across the LCD
+     unprompted; tapping it swaps in the minigame overlay, which sits
+     absolutely over the whole LCD (the expr/score/hint rows stay in the
+     DOM underneath, untouched, so nothing about scoring/auto-solvers has
+     to pause). ---------- */
+  .dino-sprite{ position:relative; display:block; width:20px; height:18px; color:var(--lcd-text); }
+  .dino-sprite span{ position:absolute; background:currentColor; }
+  .dino-sprite .d-head{ left:12px; top:0; width:8px; height:6px; }
+  .dino-sprite .d-body{ left:3px; top:5px; width:12px; height:6px; }
+  .dino-sprite .d-tail{ left:0; top:9px; width:4px; height:3px; }
+  .dino-sprite .d-arm{ left:10px; top:8px; width:2px; height:2px; }
+  .dino-sprite .d-leg{ top:11px; width:3px; height:5px; }
+  .dino-sprite .d-leg1{ left:5px; animation:dinoStep 0.42s steps(1,end) infinite; }
+  .dino-sprite .d-leg2{ left:12px; animation:dinoStep 0.42s steps(1,end) infinite reverse; }
+  @keyframes dinoStep{
+    0%, 49%{ transform:translateX(0) scaleY(1); }
+    50%, 100%{ transform:translateX(-2px) scaleY(0.8); }
+  }
+
+  .lcd-dino-cameo{
+    display:none;
+    position:absolute; left:-26px; bottom:4px; z-index:5; top:auto;
+    width:20px; height:18px; padding:10px; margin:-10px;
+    box-sizing:content-box;
+    background:none; border:none; cursor:pointer;
+    animation:dinoWalkAcross 10s linear forwards;
+    touch-action:none;
+  }
+  .lcd-dino-cameo.walk-reverse{ animation-name:dinoWalkAcrossReverse; }
+  @keyframes dinoWalkAcross{
+    from{ left:-26px; }
+    to{ left:calc(100% + 6px); }
+  }
+  @keyframes dinoWalkAcrossReverse{
+    from{ left:calc(100% + 6px); transform:scaleX(-1); }
+    to{ left:-26px; transform:scaleX(-1); }
+  }
+
+  .lcd-minigame{
+    display:none; position:absolute; inset:0; z-index:6;
+    flex-direction:column;
+    padding:8px 12px 10px;
+    background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
+  }
+  .lcd-minigame.active{ display:flex; }
+  .dg-hud{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:'IBM Plex Mono'; color:var(--lcd-text-dim);
+    font-size:0.62rem; letter-spacing:0.5px;
+  }
+  .dg-hud-score{ font-family:'VT323', monospace; font-size:1.1rem; color:var(--lcd-text); }
+  .dg-field{
+    position:relative; flex:1 1 auto; min-height:56px; margin-top:2px;
+    overflow:hidden;
+  }
+  .dg-ground{
+    position:absolute; left:0; right:0; bottom:0; height:0;
+    border-top:2px dashed var(--lcd-text-dim);
+  }
+  .dg-player{ position:absolute; left:14px; bottom:0; will-change:transform; }
+  .dg-cactus{
+    position:absolute; bottom:0; background:var(--lcd-text);
+    clip-path:polygon(30% 0%, 70% 0%, 70% 38%, 100% 38%, 100% 55%, 70% 55%, 70% 100%, 30% 100%, 30% 55%, 0% 55%, 0% 38%, 30% 38%);
+  }
+  .dg-hint{
+    font-family:'IBM Plex Mono'; font-size:0.6rem; color:var(--lcd-text-dim);
+    text-align:center; margin-top:4px;
+  }
+  .dg-gameover{
+    display:none; position:absolute; inset:0; z-index:2;
+    flex-direction:column; align-items:center; justify-content:center;
+    background:var(--lcd-bg);
+    padding:4px;
+  }
+  .dg-gameover.show{ display:flex; }
+  .dg-go-title{
+    font-family:'Space Grotesk'; font-weight:700; letter-spacing:1px;
+    color:var(--lcd-text); font-size:0.72rem; line-height:1;
+  }
+  .dg-go-earned{
+    font-family:'IBM Plex Mono'; font-size:0.58rem; color:var(--lcd-text-dim);
+    margin-top:3px; line-height:1;
+  }
+  .dg-go-score{
+    font-family:'VT323', monospace; font-size:1.5rem; color:var(--lcd-text);
+    line-height:1;
+    margin-top:1px;
+  }
+  .dg-ok-btn{
+    margin-top:5px; min-width:64px;
+    background:var(--accent); color:#1c2a12; border:none; border-radius:6px;
+    padding:3px 14px; font-family:'Space Grotesk'; font-weight:700; font-size:0.68rem;
+    letter-spacing:0.5px; cursor:pointer; line-height:1.6;
+    box-shadow:0 2px 0 rgba(0,0,0,0.3);
+  }
+  .dg-ok-btn:active{ transform:translateY(2px); box-shadow:none; }
+
   /* Keypad */
   .keypad{
     display:grid;
@@ -1046,6 +1145,44 @@
           <div class="lcd-hint-row" id="lcdHintRow">
             <div class="lcd-hint" id="lcdHint">pick a digit &amp; a symbol, then mash =</div>
             <div class="lcd-solver-tray" id="lcdSolverTray" aria-hidden="true"></div>
+          </div>
+
+          <button class="lcd-dino-cameo" id="lcdDinoCameo" type="button" aria-label="A pixel dino! Tap to play a minigame" aria-hidden="true">
+            <span class="dino-sprite">
+              <span class="d-head"></span>
+              <span class="d-body"></span>
+              <span class="d-tail"></span>
+              <span class="d-arm"></span>
+              <span class="d-leg d-leg1"></span>
+              <span class="d-leg d-leg2"></span>
+            </span>
+          </button>
+
+          <div class="lcd-minigame" id="lcdMinigame" aria-hidden="true">
+            <div class="dg-hud">
+              <span class="dg-hud-label">DINO RUN</span>
+              <span class="dg-hud-score" id="dgScore">0</span>
+            </div>
+            <div class="dg-field" id="dgField">
+              <div class="dg-ground"></div>
+              <div class="dg-player" id="dgPlayer">
+                <span class="dino-sprite">
+                  <span class="d-head"></span>
+                  <span class="d-body"></span>
+                  <span class="d-tail"></span>
+                  <span class="d-arm"></span>
+                  <span class="d-leg d-leg1"></span>
+                  <span class="d-leg d-leg2"></span>
+                </span>
+              </div>
+            </div>
+            <div class="dg-hint">tap = to jump</div>
+            <div class="dg-gameover" id="dgGameOver">
+              <div class="dg-go-title">GAME OVER</div>
+              <div class="dg-go-earned">You Earned:</div>
+              <div class="dg-go-score" id="dgFinalScore">0</div>
+              <button class="dg-ok-btn" id="dgOkBtn" type="button">OK</button>
+            </div>
           </div>
         </div>
 
@@ -1865,6 +2002,14 @@
   const lcdSolverTrayEl = document.getElementById('lcdSolverTray');
   const lcdEl = document.getElementById('lcd');
   const tapeEl = document.getElementById('tape');
+  const lcdDinoCameoEl = document.getElementById('lcdDinoCameo');
+  const lcdMinigameEl = document.getElementById('lcdMinigame');
+  const dgFieldEl = document.getElementById('dgField');
+  const dgPlayerEl = document.getElementById('dgPlayer');
+  const dgScoreEl = document.getElementById('dgScore');
+  const dgGameOverEl = document.getElementById('dgGameOver');
+  const dgFinalScoreEl = document.getElementById('dgFinalScore');
+  const dgOkBtnEl = document.getElementById('dgOkBtn');
   const cpsReadoutEl = document.getElementById('cpsReadout');
   const powerLedEl = document.getElementById('powerLed');
   const muteBtn = document.getElementById('muteBtn');
@@ -2136,6 +2281,13 @@
     if(!btn) return;
     const action = btn.dataset.action;
     const value = btn.dataset.value;
+    if(dino.active){
+      // While the dino minigame owns the LCD, the = key only jumps —
+      // it doesn't compute anything, and every other key is disabled
+      // so a mid-run tap can't accidentally spend or reselect anything.
+      if(action === 'equals') dinoJump();
+      return;
+    }
     if(action === 'solvers'){ openSolversModal(); return; }
     if(action === 'ascend'){ openAscendModal(); return; }
     if(action === 'equals'){ doEquals(); return; }
@@ -2902,6 +3054,7 @@
     titleScreenEl.addEventListener('transitionend', function(){
       titleScreenEl.style.display = 'none';
     }, { once:true });
+    scheduleDinoCameo();
   }
 
   function playTitleIntro(){
@@ -2945,6 +3098,247 @@
     setTimeout(dismissTitleScreen, 3300);
   }
   titleScreenEl.addEventListener('click', playTitleIntro, { once:true });
+
+  /* =========================================================
+     DINO MINIGAME
+     A cameo dino occasionally strolls across the LCD. Tapping it
+     replaces the LCD with a tiny endless-runner: tap "=" to jump the
+     approaching cacti. Each full second survived pays out 10x whatever
+     the calculator's current tap (=) would earn, added straight to the
+     real score. Auto-Solvers keep ticking in the background the whole
+     time since tick()/setInterval never pause for this.
+  ========================================================= */
+  const GRAVITY = 900;       // px/s^2
+  const JUMP_SPEED = 300;    // px/s, initial upward velocity
+  const BASE_SPEED = 150;    // px/s, obstacle speed at run start
+  const SPEED_RAMP = 9;      // px/s gained per second survived
+  const MAX_SPEED = 480;
+  const PLAYER_LEFT = 14, PLAYER_W = 20, PLAYER_H = 16;
+
+  const dino = {
+    active:false, gameOver:false, raf:null, lastTs:null,
+    y:0, vy:0, jumping:false,
+    elapsed:0, lastWholeSec:0, speed:BASE_SPEED,
+    obstacleTimer:0, obstacles:[],
+    runScore:0,
+    cameoTimer:null,
+  };
+
+  function randRange(a,b){ return a + Math.random()*(b-a); }
+
+  function scheduleDinoCameo(){
+    clearTimeout(dino.cameoTimer);
+    dino.cameoTimer = setTimeout(spawnDinoCameo, randRange(35000, 80000));
+  }
+
+  function spawnDinoCameo(){
+    // Don't interrupt the title screen, an open modal, the minigame
+    // itself, or a backgrounded tab — just try again shortly after.
+    if(dino.active || document.hidden || document.querySelector('.modal-overlay.open') ||
+       !titleScreenEl.classList.contains('hide')){
+      dino.cameoTimer = setTimeout(spawnDinoCameo, 4000);
+      return;
+    }
+    lcdDinoCameoEl.classList.toggle('walk-reverse', Math.random() < 0.5);
+    lcdDinoCameoEl.style.display = 'block';
+    // restart the CSS walk animation from scratch every time
+    lcdDinoCameoEl.style.animation = 'none';
+    void lcdDinoCameoEl.offsetWidth;
+    lcdDinoCameoEl.style.animation = '';
+    lcdDinoCameoEl.setAttribute('aria-hidden', 'false');
+
+    const onTap = (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      cleanup();
+      startMinigame();
+    };
+    const onDone = ()=>{
+      cleanup();
+      scheduleDinoCameo();
+    };
+    function cleanup(){
+      lcdDinoCameoEl.style.display = 'none';
+      lcdDinoCameoEl.setAttribute('aria-hidden', 'true');
+      lcdDinoCameoEl.removeEventListener('pointerdown', onTap);
+      lcdDinoCameoEl.removeEventListener('animationend', onDone);
+    }
+    lcdDinoCameoEl.addEventListener('pointerdown', onTap, { once:true });
+    lcdDinoCameoEl.addEventListener('animationend', onDone, { once:true });
+  }
+
+  // A quick upward pitch-bend "boing" — square wave sweeping low-to-high,
+  // reads as a fun little jump blip rather than a flat beep.
+  function playDinoJumpSound(){
+    const c = ensureTitleActx();
+    if(!c) return;
+    const now = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(620, now + 0.09);
+    const gain = c.createGain();
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+    osc.connect(gain).connect(c.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
+
+  // A chunky 4-note descending chiptune sting: each note is doubled an
+  // octave down (two square oscillators stacked) for a thicker, punchier
+  // "game over" sound than a single tone can give.
+  function playDinoGameOverSound(){
+    const c = ensureTitleActx();
+    if(!c) return;
+    const now = c.currentTime;
+    const notes = [
+      { f:392, t:0.00, d:0.11 }, // G4
+      { f:349, t:0.11, d:0.11 }, // F4
+      { f:294, t:0.22, d:0.11 }, // D4
+      { f:196, t:0.33, d:0.34 }, // G3, held
+    ];
+    notes.forEach(n=>{
+      [1, 0.5].forEach((octave, i)=>{
+        const osc = c.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = n.f * octave;
+        const gain = c.createGain();
+        const peak = i === 0 ? 0.07 : 0.045;
+        const t0 = now + n.t;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.linearRampToValueAtTime(peak, t0 + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.d);
+        osc.connect(gain).connect(c.destination);
+        osc.start(t0);
+        osc.stop(t0 + n.d + 0.02);
+      });
+    });
+  }
+
+  function startMinigame(){
+    dino.active = true;
+    dino.gameOver = false;
+    dino.y = 0; dino.vy = 0; dino.jumping = false;
+    dino.elapsed = 0; dino.lastWholeSec = 0; dino.speed = BASE_SPEED;
+    dino.obstacleTimer = 1.1;
+    dino.runScore = 0;
+    dino.lastTs = null;
+    dino.obstacles.forEach(o => o.el.remove());
+    dino.obstacles = [];
+    dgPlayerEl.style.transform = 'translateY(0)';
+    dgScoreEl.textContent = '0';
+    dgGameOverEl.classList.remove('show');
+    lcdMinigameEl.classList.add('active');
+    lcdMinigameEl.setAttribute('aria-hidden', 'false');
+    beep(440, 0.06, 0.04);
+    dino.raf = requestAnimationFrame(dinoGameLoop);
+  }
+
+  function dinoJump(){
+    if(!dino.active || dino.gameOver || dino.jumping) return;
+    dino.vy = JUMP_SPEED;
+    dino.jumping = true;
+    playDinoJumpSound();
+  }
+
+  function spawnDinoObstacle(){
+    const h = 14 + Math.floor(Math.random()*10);
+    const w = 9 + Math.floor(Math.random()*4);
+    const el = document.createElement('div');
+    el.className = 'dg-cactus';
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    const startX = dgFieldEl.clientWidth;
+    el.style.left = startX + 'px';
+    dgFieldEl.appendChild(el);
+    dino.obstacles.push({ el, x:startX, w, h });
+    dino.obstacleTimer = randRange(170, 330) / dino.speed;
+  }
+
+  function dinoCollides(o){
+    const pad = 3;
+    const pLeft = PLAYER_LEFT + pad, pRight = PLAYER_LEFT + PLAYER_W - pad;
+    const pBottom = dino.y + pad, pTop = dino.y + PLAYER_H - pad;
+    const oLeft = o.x + pad, oRight = o.x + o.w - pad;
+    return pLeft < oRight && pRight > oLeft && pBottom < o.h && pTop > 0;
+  }
+
+  function dinoGameLoop(ts){
+    if(!dino.active) return;
+    if(dino.lastTs === null) dino.lastTs = ts;
+    const dt = Math.min((ts - dino.lastTs) / 1000, 0.05);
+    dino.lastTs = ts;
+
+    if(!dino.gameOver){
+      dino.vy -= GRAVITY * dt;
+      dino.y += dino.vy * dt;
+      if(dino.y <= 0){ dino.y = 0; dino.vy = 0; dino.jumping = false; }
+      dgPlayerEl.style.transform = 'translateY(' + (-dino.y) + 'px)';
+
+      dino.elapsed += dt;
+      dino.speed = Math.min(MAX_SPEED, BASE_SPEED + dino.elapsed * SPEED_RAMP);
+
+      const wholeSec = Math.floor(dino.elapsed);
+      if(wholeSec > dino.lastWholeSec){
+        dino.lastWholeSec = wholeSec;
+        const reward = 10 * computeSelectedResult();
+        state.score += reward;
+        dino.runScore += reward;
+        renderScore();
+        dgScoreEl.textContent = formatCompact(dino.runScore);
+      }
+
+      dino.obstacleTimer -= dt;
+      if(dino.obstacleTimer <= 0) spawnDinoObstacle();
+
+      for(let i = dino.obstacles.length - 1; i >= 0; i--){
+        const o = dino.obstacles[i];
+        o.x -= dino.speed * dt;
+        o.el.style.left = o.x + 'px';
+        if(o.x < -30){
+          o.el.remove();
+          dino.obstacles.splice(i, 1);
+          continue;
+        }
+        if(dinoCollides(o)){
+          endDinoGame();
+          return;
+        }
+      }
+    }
+    dino.raf = requestAnimationFrame(dinoGameLoop);
+  }
+
+  function endDinoGame(){
+    dino.gameOver = true;
+    cancelAnimationFrame(dino.raf);
+    playDinoGameOverSound();
+    dgFinalScoreEl.textContent = formatScoreMain(dino.runScore);
+    dgGameOverEl.classList.add('show');
+    if(dino.runScore > 0){
+      printTape('DINO RUN  ' + Math.floor(dino.elapsed) + 's = ' + formatCompact(dino.runScore), true);
+    }
+  }
+
+  function closeDinoGame(){
+    dino.active = false;
+    lcdMinigameEl.classList.remove('active');
+    lcdMinigameEl.setAttribute('aria-hidden', 'true');
+    dgGameOverEl.classList.remove('show');
+    dino.obstacles.forEach(o => o.el.remove());
+    dino.obstacles = [];
+    renderScore();
+    scheduleDinoCameo();
+  }
+
+  dgOkBtnEl.addEventListener('click', closeDinoGame);
+
+  // Tapping anywhere on the LCD is a second way to jump, alongside the
+  // = key. dinoJump() already no-ops once the run is over (or mid-jump),
+  // so this is safe even when the tap lands on the OK button itself —
+  // that button's own click handler still fires afterward as normal.
+  lcdMinigameEl.addEventListener('pointerdown', ()=> dinoJump());
 
   /* =========================================================
      GAME LOOP

@@ -332,6 +332,7 @@
     font-family:'VT323', monospace; font-size:1.35rem; color:var(--lcd-text);
     letter-spacing:0.5px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    cursor:pointer;
   }
   .music-transport{display:flex; justify-content:center; gap:8px; margin-bottom:16px;}
   .music-tbtn{
@@ -1145,7 +1146,7 @@
 
     <div class="music-lcd">
       <div class="music-lcd-label">Now Playing</div>
-      <div class="music-lcd-name" id="musicNowName">&nbsp;</div>
+      <div class="music-lcd-name" id="musicNowName" title="Tap to see the music credit" role="button" tabindex="0">&nbsp;</div>
     </div>
 
     <div class="music-transport">
@@ -2785,9 +2786,29 @@
   musicNextBtn.innerHTML = ICON_SKIP_NEXT;
   musicLoopBtn.innerHTML = ICON_REPEAT;
 
+  // The "Now Playing" LCD auto-toggles between the current track's name
+  // and a credit line for the composer every 7s while the tape deck modal
+  // is open. Tapping it toggles immediately and restarts that timer, so a
+  // manual tap never gets immediately overridden by the auto-cycle.
+  let musicShowCredit = false;
+  let musicCreditTimer = null;
+  const MUSIC_CREDIT_TEXT = 'by Isaac Haines';
+  const MUSIC_CREDIT_INTERVAL_MS = 7000;
+
+  function startMusicCreditTimer(){
+    stopMusicCreditTimer();
+    musicCreditTimer = setInterval(()=>{
+      musicShowCredit = !musicShowCredit;
+      renderMusicPanel();
+    }, MUSIC_CREDIT_INTERVAL_MS);
+  }
+  function stopMusicCreditTimer(){
+    if(musicCreditTimer){ clearInterval(musicCreditTimer); musicCreditTimer = null; }
+  }
+
   function renderMusicPanel(){
     const s = Music.getState();
-    musicNowNameEl.textContent = s.songName;
+    musicNowNameEl.textContent = musicShowCredit ? MUSIC_CREDIT_TEXT : s.songName;
     musicMuteBtn.textContent = s.muted ? '🔇' : '🔊';
     musicMuteBtn.classList.toggle('muted', s.muted);
     musicMuteBtn.title = s.muted ? 'Unmute music' : 'Mute music';
@@ -2819,10 +2840,13 @@
     renderMusicPanel();
     musicModalEl.classList.add('open');
     musicModalEl.setAttribute('aria-hidden', 'false');
+    startMusicCreditTimer();
   }
   function closeMusicModal(){
     musicModalEl.classList.remove('open');
     musicModalEl.setAttribute('aria-hidden', 'true');
+    stopMusicCreditTimer();
+    musicShowCredit = false;
   }
 
   musicBtn.addEventListener('click', openMusicModal);
@@ -2836,10 +2860,24 @@
   musicSongListEl.addEventListener('click', (e)=>{
     const btn = e.target.closest('.music-song-btn');
     if(!btn) return;
+    musicShowCredit = false;
     Music.selectSong(parseInt(btn.dataset.i, 10));
     renderMusicPanel();
   });
-  Music.onSongChange(renderMusicPanel);
+  function toggleMusicCredit(){
+    musicShowCredit = !musicShowCredit;
+    renderMusicPanel();
+    startMusicCreditTimer();
+  }
+  musicNowNameEl.addEventListener('click', toggleMusicCredit);
+  musicNowNameEl.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleMusicCredit(); }
+  });
+  Music.onSongChange(()=>{
+    musicShowCredit = false;
+    renderMusicPanel();
+    if(musicModalEl.classList.contains('open')) startMusicCreditTimer();
+  });
 
   // Browsers block audio autoplay until a real user gesture happens on the
   // page. The title screen tap below is that gesture, but this fallback

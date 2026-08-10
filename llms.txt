@@ -1,0 +1,17 @@
+# CALC-U-LATOR
+
+> An idle clicker by Plasticine Games about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers with a squad of Auto-Solvers, all wrapped in a tactile, desk-object presentation of a busted old solar calculator (the "CC-1").
+
+CALC-U-LATOR is a free-to-play browser idle/clicker game. Progress (digits unlocked, tape history, score, and settings) is stored locally in the player's browser via Local Storage; Plasticine Games does not have server-side access to this data. The site is developed and maintained by a solo independent developer, Shawn.Genji, operating as Plasticine Games (a sole proprietorship in Tennessee, United States).
+
+## Pages
+
+- [Play CALC-U-LATOR](https://calc-u-lator.com/index.html): The game itself — an idle clicker where players earn calculator digits, operators, and Auto-Solver automation upgrades.
+- [About](https://calc-u-lator.com/about.html): Background on Plasticine Games, the story behind CALC-U-LATOR, music credits, and contact information.
+- [Privacy Policy](https://calc-u-lator.com/privacy.html): How player data (local storage) and any third-party ad providers (e.g. Google AdSense) handle information.
+- [Terms of Use](https://calc-u-lator.com/terms.html): Legal terms governing use of the site and game.
+
+## Notes
+
+- CALC-U-LATOR, its artwork, code, and sound effects are © 2026 Shawn.Genji / Plasticine Games. Music is licensed from composer Isaac Haines. Portions of source code may be viewable on GitHub but are not licensed for reuse without permission.
+- Contact: Instagram [@plasticinegames](https://www.instagram.com/plasticinegames)

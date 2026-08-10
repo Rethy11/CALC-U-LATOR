@@ -1540,13 +1540,21 @@
 
   /* =========================================================
      DISABLE PAGE SCROLLING
+     Only for single-finger drags outside the scrollable areas — a second
+     touch point means this is a pinch-zoom gesture, which must be allowed
+     through untouched or the touch-action/viewport fixes above do nothing
+     (this handler runs regardless of what CSS allows). Same idea for wheel:
+     ctrlKey is how browsers report trackpad-pinch/ctrl+scroll zoom, so it's
+     excluded too.
   ========================================================= */
   const SCROLLABLE_SELECTOR = '.modal-scroll-area, .lcd-expr';
   document.addEventListener('touchmove', function(e){
+    if(e.touches && e.touches.length > 1) return;
     if(e.target.closest(SCROLLABLE_SELECTOR)) return;
     e.preventDefault();
   }, {passive:false});
   document.addEventListener('wheel', function(e){
+    if(e.ctrlKey) return;
     if(e.target.closest(SCROLLABLE_SELECTOR)) return;
     e.preventDefault();
   }, {passive:false});

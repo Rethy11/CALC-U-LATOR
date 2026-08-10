@@ -13,10 +13,29 @@
   :root{
     --bg-desk-1:#1b1a19; --bg-desk-2:#26221e;
     --case:#33302c; --case-hi:#403c36; --case-lo:#242220; --panel:#413c35;
-    --lcd-bg:#c7d1a3; --lcd-bg-dim:#b8c395; --lcd-text:#2b3320; --lcd-text-dim:#5c6a48;
+    --lcd-bg:#c7d1a3; --lcd-bg-dim:#b8c395; --lcd-text:#2b3320; --lcd-text-dim:#33391f;
     --paper:#e7dfc7; --paper-ink:#3a3428;
     --text-light:#eee6d6; --text-dim:#a99f8f;
-    --accent:#7fae5e; --key-op:#c68a34; --danger:#b0503f;
+    --accent:#7fae5e; --key-op:#c68a34; --key-op-text:#7a5219; --danger:#b0503f;
+  }
+  /* --lcd-text-dim and --key-op-text are darkened from the values a plain
+     palette would suggest so the small header text and the ">" heading
+     marker / link hover-focus color meet WCAG AA contrast (4.5:1) against
+     the light lcd/paper backgrounds they sit on. --key-op stays as-is for
+     non-text uses. */
+  *:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; border-radius:3px; }
+  .doc-card a:focus-visible, .doc-card *:focus-visible{ outline-color:var(--key-op-text); }
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:0.001ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.001ms !important;
+      scroll-behavior:auto !important;
+    }
   }
   *{ box-sizing:border-box; }
   body{
@@ -71,13 +90,13 @@
     margin:32px 0 12px; padding-bottom:6px;
     border-bottom:2px dashed #c9bd9d;
   }
-  .doc-card h2::before{ content:"> "; color:var(--key-op); }
+  .doc-card h2::before{ content:"> "; color:var(--key-op-text); }
   .doc-card h2:first-of-type{ margin-top:8px; }
   .doc-card p{ margin:0 0 14px; font-size:0.95rem; }
   .doc-card ul{ margin:0 0 14px; padding-left:22px; }
   .doc-card li{ margin-bottom:7px; font-size:0.93rem; }
   .doc-card a{ color:#4a5f38; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px; }
-  .doc-card a:hover, .doc-card a:focus-visible{ color:var(--key-op); }
+  .doc-card a:hover, .doc-card a:focus-visible{ color:var(--key-op-text); }
   .closing{ padding:6px 0 30px; font-size:0.93rem; }
   footer{
     margin-top:44px; text-align:center; font-size:0.7rem; color:var(--text-dim);
@@ -92,6 +111,7 @@
 <div class="page">
   <a class="back-link" href="index.html">&larr; Back to CALC-U-LATOR</a>
 
+  <main>
   <div class="lcd-title">
     <div class="eyebrow">CC-1 · MANUAL</div>
     <h1>Terms</h1>
@@ -261,13 +281,14 @@
     <p>These Terms, together with the <a href="privacy.html">Privacy Policy</a>, constitute the entire agreement between you and Plasticine Games regarding your use of the Services and supersede any prior understandings relating to the Services.</p>
 
     <h2>21. Contact</h2>
-    <p>If you have questions regarding these Terms, suggestions for improving CALC-U-LATOR, or wish to report a bug, you may contact Plasticine Games through Instagram: <a href="https://www.instagram.com/plasticinegames" target="_blank" rel="noopener">@plasticinegames</a>.</p>
+    <p>If you have questions regarding these Terms, suggestions for improving CALC-U-LATOR, or wish to report a bug, you may contact Plasticine Games through Instagram: <a href="https://www.instagram.com/plasticinegames" target="_blank" rel="noopener">@plasticinegames<span class="visually-hidden"> (opens in a new tab)</span></a>.</p>
 
     <p class="closing">Thank you for playing CALC-U-LATOR and supporting independent game development. Your support makes it possible for Plasticine Games to keep creating small, handcrafted games.</p>
   </div>
+  </main>
 
   <footer>
-    <a href="index.html">CALC-U-LATOR</a> &bull; <a href="about.html">About Us</a> &bull; <a href="privacy.html">Privacy Policy</a>
+    <a href="index.html">CALC-U-LATOR</a> &bull; <a href="about.html">About Us</a> &bull; <a href="about.html#accessibility">Accessibility</a> &bull; <a href="privacy.html">Privacy Policy</a>
   </footer>
 </div>
 </body>

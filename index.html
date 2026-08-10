@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1b1a19">
 <title>CALC-U-LATOR — Model CC-1</title>
 <meta name="description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
@@ -32,17 +32,18 @@
     --case:#33302c;
     --case-hi:#403c36;
     --case-lo:#242220;
-    --panel:#413c35;
+    --panel:#39342e;
     --lcd-bg:#c7d1a3;
     --lcd-bg-dim:#b8c395;
     --lcd-text:#2b3320;
-    --lcd-text-dim:#5c6a48;
+    --lcd-text-dim:#33391f;
     --key-num:#55504a;
     --key-num-hi:#67615a;
     --key-op:#c68a34;
     --key-op-hi:#d89b42;
+    --key-op-text:#2a1a08;
     --key-eq:#5c7a4e;
-    --key-eq-hi:#6f8f5f;
+    --key-eq-hi:#537047;
     --key-util:#83493f;
     --key-util-hi:#96584d;
     --paper:#e7dfc7;
@@ -51,21 +52,44 @@
     --text-dim:#a99f8f;
     --accent:#7fae5e;
     --danger:#b0503f;
+    --danger-text:#ec9a91;
     --locked:#38352f;
     --radius-case:22px;
     --radius-key:10px;
     font-size:16px;
   }
+  /* Colors above are tuned so every text/background pairing on the page
+     meets WCAG AA contrast (4.5:1 for normal text, 3:1 for large text/UI
+     components). --key-op-text and --danger-text exist because the
+     accent colors they're paired with (key-op orange, danger red) aren't
+     dark/light enough on their own to carry readable text at 4.5:1 —
+     --key-op / --danger themselves stay unchanged for use as fills,
+     borders, and icons where only the 3:1 non-text threshold applies. */
   *{box-sizing:border-box;}
-  /* Kill double-tap-to-zoom everywhere, exhaustively: every element gets an
-     explicit touch-action (never left at the default 'auto'), so there's no
-     gap in the ancestor-intersection that iOS Safari can fall back to zoom
-     through. Deliberately never uses 'manipulation' or 'pinch-zoom' — real-world
-     testing shows those values can silently re-enable automatic zoom elsewhere
-     on the page. The two spots that need real scrolling get pan-x/pan-y
-     overrides below (.lcd-expr, .modal-scroll-area), each of which still
-     excludes double-tap-zoom on its own. */
-  *, *::before, *::after{ touch-action:none; }
+  /* Respect the OS-level "reduce motion" preference: every animation and
+     transition on the page (LED blinks, glitch effects, cameo walk/rise,
+     pulsing glows, the ascend hold-fill, etc.) collapses to its end state
+     almost instantly instead of animating, for anyone who finds motion
+     uncomfortable or disorienting. Nothing on the page depends on an
+     animation actually completing to be usable. */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:0.001ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.001ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+  /* Every element gets an explicit touch-action (never left at the default
+     'auto') so double-tap-zoom can't sneak in through an unstyled gap.
+     Uses 'manipulation' rather than 'none': 'none' also blocks pinch-zoom
+     site-wide, which fails WCAG 1.4.4/1.4.10 (people who zoom the page to
+     read it must still be able to). 'manipulation' keeps pinch-zoom and
+     panning available while still suppressing double-tap-zoom, and the
+     dblclick backstop further down catches any browser that doesn't honor
+     that reliably. The two spots that need real scrolling get pan-x/pan-y
+     overrides below (.lcd-expr, .modal-scroll-area). */
+  *, *::before, *::after{ touch-action:manipulation; }
   html{
     margin:0; padding:0; height:100%;
     background:var(--bg-desk-1);
@@ -93,7 +117,7 @@
     -moz-user-select:none;
     -ms-user-select:none;
     user-select:none;
-    touch-action:none;
+    touch-action:manipulation;
   }
   h1,h2,h3{font-family:'Space Grotesk', sans-serif; margin:0;}
   button{font-family:inherit;}
@@ -131,7 +155,7 @@
     color:var(--text-light);
     -webkit-appearance:none;
     appearance:none;
-    touch-action:none;
+    touch-action:manipulation;
     overflow:hidden;
   }
   .title-screen.hide{ opacity:0; pointer-events:none; }
@@ -709,7 +733,7 @@
     box-sizing:content-box;
     background:none; border:none; cursor:pointer;
     animation:dinoWalkAcross 10s linear forwards;
-    touch-action:none;
+    touch-action:manipulation;
   }
   .lcd-dino-cameo.walk-reverse{ animation-name:dinoWalkAcrossReverse; }
   @keyframes dinoWalkAcross{
@@ -745,7 +769,7 @@
     box-sizing:content-box;
     background:none; border:none; cursor:pointer;
     animation:balloonRise 7s ease-in forwards;
-    touch-action:none;
+    touch-action:manipulation;
     will-change:transform;
   }
   .lcd-balloon-cameo.drift-reverse{ animation-name:balloonRiseReverse; }
@@ -914,9 +938,9 @@
   .key:disabled{ cursor:default; }
   .key-num{ background:var(--key-num); grid-area:auto;}
   .key-num:hover:not(:disabled){ background:var(--key-num-hi); }
-  .key-op{ background:var(--key-op); }
+  .key-op{ background:var(--key-op); color:var(--key-op-text); }
   .key-op:hover:not(:disabled){ background:var(--key-op-hi); }
-  .key-eq{ background:var(--key-eq); font-size:1.3rem; }
+  .key-eq{ background:var(--key-eq); color:#fff; font-size:1.3rem; }
   .key-eq:hover:not(:disabled){ background:var(--key-eq-hi); }
   .key-util{ background:var(--key-util); font-size:0.85rem; }
   .key-util:hover:not(:disabled){ background:var(--key-util-hi); }
@@ -960,7 +984,7 @@
   .btn-chip{
     grid-column:3; grid-row:5;
     display:flex; align-items:center; justify-content:center;
-    font-family:'Space Grotesk'; font-size:0.6rem; color:#6b6459;
+    font-family:'Space Grotesk'; font-size:0.6rem; color:#968c7a;
     letter-spacing:1px; background:var(--case-lo); border-radius:8px;
     border:none; cursor:pointer; transition:background .15s, color .15s;
   }
@@ -991,7 +1015,7 @@
     font-family:'Space Grotesk'; font-weight:700; font-size:0.85rem;
     letter-spacing:0.5px; color:var(--text-light);
     cursor:pointer;
-    touch-action:none;
+    touch-action:manipulation;
   }
   .ascend-btn-fill{
     position:absolute; inset:0; width:0%;
@@ -1102,7 +1126,7 @@
   .shop-item.locked{ opacity:0.55; }
   .item-name{ font-family:'Space Grotesk'; font-weight:600; font-size:0.95rem; color:var(--text-light); }
   .item-flavor{ grid-column:1 / -1; font-size:0.68rem; color:#8b8272; font-style:italic; }
-  .item-req{ grid-column:1; font-size:0.68rem; color:var(--danger); }
+  .item-req{ grid-column:1; font-size:0.68rem; color:var(--danger-text); }
   .buy-btn{
     grid-row:1 / 3;
     background:var(--accent); color:#1c2a12; border:none; border-radius:8px;
@@ -1234,22 +1258,22 @@
 
 <div class="desk">
 
-  <div class="topbar">
+  <header class="topbar">
     <h1>CALC‑U‑LATOR <span class="model">MODEL CC‑1</span></h1>
     <div class="stats">
-      <span><span class="power-led" id="powerLed"></span> AUTO</span>
+      <span><span class="power-led" id="powerLed" aria-hidden="true"></span> AUTO</span>
       <span><b id="cpsReadout">+0</b>/sec</span>
       <button class="mute-btn" id="muteBtn" title="Toggle sound" aria-label="Toggle sound">🔊</button>
       <button class="mute-btn music-btn on" id="musicBtn" title="Music" aria-label="Open music player">🎵</button>
       <button class="mute-btn achieve-btn" id="achieveBtn" title="Achievements" aria-label="Open achievements">
-        <span class="achieve-badge" id="achieveBadge"></span>🏆
+        <span class="achieve-badge" id="achieveBadge" aria-hidden="true"></span>🏆
       </button>
     </div>
-  </div>
+  </header>
 
-  <div class="layout">
+  <main class="layout">
     <!-- CALCULATOR DEVICE -->
-    <section class="device">
+    <section class="device" aria-label="CC-1 calculator">
       <div class="device-case">
         <div class="brand-row">
           <span class="brand">CC‑1</span>
@@ -1352,7 +1376,7 @@
         </div>
       </div>
     </section>
-  </div>
+  </main>
 
   <footer class="note">
     <a href="about.html">About</a>
@@ -1364,7 +1388,7 @@
 </div>
 
 <!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->
-<div class="modal-overlay" id="itemModal" aria-hidden="true">
+<div class="modal-overlay" id="itemModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="itemModalTitle" aria-describedby="itemModalDesc">
   <div class="modal-card">
     <button class="modal-close" id="itemModalClose" aria-label="Close">✕</button>
     <div class="modal-title" id="itemModalTitle">—</div>
@@ -1378,10 +1402,10 @@
 </div>
 
 <!-- AUTO-SOLVERS MODAL (opens via the SOLVE key) -->
-<div class="modal-overlay" id="solversModal" aria-hidden="true">
+<div class="modal-overlay" id="solversModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="solversModalTitle">
   <div class="modal-card modal-card-wide">
     <div class="solvers-head">
-      <div class="modal-title">Auto‑Solvers</div>
+      <div class="modal-title" id="solversModalTitle">Auto‑Solvers</div>
       <button class="modal-close" id="solversModalClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-scroll-area">
@@ -1391,11 +1415,11 @@
 </div>
 
 <!-- ASCENSION MODAL (opens via the MEM key) -->
-<div class="modal-overlay" id="ascendModal" aria-hidden="true">
+<div class="modal-overlay" id="ascendModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ascendModalTitle" aria-describedby="ascendModalDesc">
   <div class="modal-card">
     <button class="modal-close" id="ascendModalClose" aria-label="Close">✕</button>
-    <div class="modal-title">Memory Bank</div>
-    <div class="modal-desc">Ascending wipes your score, unlocked digits &amp; operators, and every Auto‑Solver back to zero. In exchange, each Auto‑Solver you currently own converts into permanent Memory Points. Points never reset, and they permanently multiply everything your Auto‑Solvers produce from then on.</div>
+    <div class="modal-title" id="ascendModalTitle">Memory Bank</div>
+    <div class="modal-desc" id="ascendModalDesc">Ascending wipes your score, unlocked digits &amp; operators, and every Auto‑Solver back to zero. In exchange, each Auto‑Solver you currently own converts into permanent Memory Points. Points never reset, and they permanently multiply everything your Auto‑Solvers produce from then on.</div>
     <div class="modal-cost-row">
       <span class="modal-cost-label">Current Points</span>
       <span class="modal-cost" id="ascendCurrentPts">0</span>
@@ -1409,18 +1433,18 @@
       <span class="modal-cost" id="ascendTotalPts">0</span>
     </div>
     <button class="ascend-btn" id="ascendBtn">
-      <span class="ascend-btn-fill" id="ascendBtnFill"></span>
+      <span class="ascend-btn-fill" id="ascendBtnFill" aria-hidden="true"></span>
       <span class="ascend-btn-label" id="ascendBtnLabel">HOLD TO ASCEND</span>
     </button>
-    <div class="modal-ascend-note">hold for 2 seconds to confirm</div>
+    <div class="modal-ascend-note" id="ascendModalNote">hold for 2 seconds to confirm — press and hold Enter or Space if using a keyboard</div>
   </div>
 </div>
 
 <!-- MUSIC MODAL (opens via the topbar music button) -->
-<div class="modal-overlay" id="musicModal" aria-hidden="true">
+<div class="modal-overlay" id="musicModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="musicModalTitle">
   <div class="modal-card music-modal-card">
     <button class="modal-close" id="musicModalClose" aria-label="Close">✕</button>
-    <div class="modal-title">Tape Deck</div>
+    <div class="modal-title" id="musicModalTitle">Tape Deck</div>
 
     <div class="music-lcd">
       <div class="music-lcd-label">Now Playing</div>
@@ -1435,21 +1459,21 @@
     </div>
 
     <div class="music-volume-row">
-      <span class="music-vol-ic">🔈</span>
+      <span class="music-vol-ic" aria-hidden="true">🔈</span>
       <input type="range" id="musicVolume" min="0" max="100" value="50" aria-label="Music volume">
-      <span class="music-vol-ic">🔊</span>
+      <span class="music-vol-ic" aria-hidden="true">🔊</span>
     </div>
 
-    <div class="music-song-label">Tracks</div>
-    <div class="music-song-list" id="musicSongList"></div>
+    <div class="music-song-label" id="musicSongLabel">Tracks</div>
+    <div class="music-song-list" id="musicSongList" role="list" aria-labelledby="musicSongLabel"></div>
   </div>
 </div>
 
 <!-- ACHIEVEMENTS MODAL (opens via the topbar trophy button) -->
-<div class="modal-overlay" id="achieveModal" aria-hidden="true">
+<div class="modal-overlay" id="achieveModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="achieveModalTitle">
   <div class="modal-card modal-card-wide">
     <div class="solvers-head">
-      <div class="modal-title">Achievements</div>
+      <div class="modal-title" id="achieveModalTitle">Achievements</div>
       <button class="modal-close" id="achieveModalClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-scroll-area">
@@ -1457,6 +1481,7 @@
     </div>
   </div>
 </div>
+
 
 <script>
 (function(){
@@ -2198,6 +2223,58 @@
   const musicSongListEl = document.getElementById('musicSongList');
 
   /* =========================================================
+     MODAL ACCESSIBILITY (shared by all 5 dialogs)
+     Every modal-overlay above carries role="dialog" aria-modal="true" in
+     markup. This adds the behavior WCAG requires to back that up:
+     - focus moves into the dialog when it opens
+     - Tab/Shift+Tab is trapped inside it while it's open
+     - Escape closes it (by clicking its own .modal-close button, so each
+       modal's existing close logic — and any state it resets — still runs)
+     - focus returns to whatever triggered the modal once it closes
+  ========================================================= */
+  let lastFocusedBeforeModal = null;
+
+  function getFocusable(container){
+    return Array.from(container.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null);
+  }
+
+  function onModalOpen(modalEl){
+    lastFocusedBeforeModal = document.activeElement;
+    const focusable = getFocusable(modalEl);
+    if(focusable.length) focusable[0].focus();
+  }
+
+  function onModalClose(){
+    if(lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function'){
+      lastFocusedBeforeModal.focus();
+    }
+    lastFocusedBeforeModal = null;
+  }
+
+  document.addEventListener('keydown', function(e){
+    const openModal = document.querySelector('.modal-overlay.open');
+    if(!openModal) return;
+    if(e.key === 'Escape'){
+      e.preventDefault();
+      const closer = openModal.querySelector('.modal-close');
+      if(closer) closer.click();
+      return;
+    }
+    if(e.key === 'Tab'){
+      const focusable = getFocusable(openModal);
+      if(!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if(e.shiftKey && document.activeElement === first){
+        e.preventDefault(); last.focus();
+      } else if(!e.shiftKey && document.activeElement === last){
+        e.preventDefault(); first.focus();
+      }
+    }
+  });
+
+  /* =========================================================
      TAPE LOG
   ========================================================= */
   const MAX_TAPE_LINES = 30;
@@ -2325,12 +2402,22 @@
       if(!btn) return;
       const unlocked = state.unlockedNumbers.has(d);
       btn.classList.toggle('locked', !unlocked);
+      if(unlocked){
+        btn.removeAttribute('aria-label');
+      } else {
+        const def = numbersData.find(x => x.digit === d);
+        btn.setAttribute('aria-label', 'Digit ' + d + ', locked. Costs ' + formatCompact(def.cost) + '. Activate to open the purchase screen.');
+      }
     });
     const opMap = {'*':'.btn-mul', '^':'.btn-pow', '!':'.btn-fact'};
     Object.keys(opMap).forEach(op=>{
       const btn = keypadEl.querySelector(opMap[op]);
       const unlocked = state.unlockedOperators.has(op);
+      const def = operatorsData.find(x => x.id === op);
       btn.classList.toggle('locked', !unlocked);
+      btn.setAttribute('aria-label', unlocked
+        ? def.name
+        : def.name + ', locked. Costs ' + formatCompact(def.cost) + '. Activate to open the purchase screen.');
     });
     refreshKeypadAfford();
     renderSelection();
@@ -2375,12 +2462,20 @@
   function renderSelection(){
     ['1','2','3','4','5','6','7','8','9','0'].forEach(d=>{
       const btn = keypadEl.querySelector('.btn-' + d);
-      if(btn) btn.classList.toggle('selected', state.selectedDigit === d);
+      if(btn){
+        const sel = state.selectedDigit === d;
+        btn.classList.toggle('selected', sel);
+        btn.setAttribute('aria-pressed', String(sel));
+      }
     });
     const opMap = {'+':'.btn-plus', '*':'.btn-mul', '^':'.btn-pow', '!':'.btn-fact'};
     Object.keys(opMap).forEach(op=>{
       const btn = keypadEl.querySelector(opMap[op]);
-      if(btn) btn.classList.toggle('selected', state.selectedOperator === op);
+      if(btn){
+        const sel = state.selectedOperator === op;
+        btn.classList.toggle('selected', sel);
+        btn.setAttribute('aria-pressed', String(sel));
+      }
     });
   }
 
@@ -2476,12 +2571,14 @@
     itemModalBuyBtn.disabled = state.score < cost;
     itemModalEl.classList.add('open');
     itemModalEl.setAttribute('aria-hidden', 'false');
+    onModalOpen(itemModalEl);
   }
 
   function closeItemModal(){
     itemModalEl.classList.remove('open');
     itemModalEl.setAttribute('aria-hidden', 'true');
     modalTarget = null;
+    onModalClose();
   }
 
   function refreshItemModalIfOpen(){
@@ -2531,12 +2628,14 @@
     refreshBuildingsList();
     solversModalEl.classList.add('open');
     solversModalEl.setAttribute('aria-hidden', 'false');
+    onModalOpen(solversModalEl);
   }
 
   function closeSolversModal(){
     solversModalOpen = false;
     solversModalEl.classList.remove('open');
     solversModalEl.setAttribute('aria-hidden', 'true');
+    onModalClose();
   }
 
   solversModalCloseBtn.addEventListener('click', closeSolversModal);
@@ -2810,6 +2909,7 @@
     refreshAchievementsList();
     achieveModalEl.classList.add('open');
     achieveModalEl.setAttribute('aria-hidden', 'false');
+    onModalOpen(achieveModalEl);
     if(state.unseenAchievements.size){
       state.unseenAchievements.clear();
       updateAchieveBadge();
@@ -2820,6 +2920,7 @@
     achieveModalOpen = false;
     achieveModalEl.classList.remove('open');
     achieveModalEl.setAttribute('aria-hidden', 'true');
+    onModalClose();
   }
   achieveBtn.addEventListener('click', openAchieveModal);
   achieveModalCloseBtn.addEventListener('click', closeAchieveModal);
@@ -2836,12 +2937,14 @@
     resetAscendBtn();
     ascendModalEl.classList.add('open');
     ascendModalEl.setAttribute('aria-hidden', 'false');
+    onModalOpen(ascendModalEl);
   }
 
   function closeAscendModal(){
     cancelAscendHold();
     ascendModalEl.classList.remove('open');
     ascendModalEl.setAttribute('aria-hidden', 'true');
+    onModalClose();
   }
 
   ascendModalCloseBtn.addEventListener('click', closeAscendModal);
@@ -2912,6 +3015,21 @@
   ascendBtnEl.addEventListener('pointerup', cancelAscendHold);
   ascendBtnEl.addEventListener('pointerleave', cancelAscendHold);
   ascendBtnEl.addEventListener('pointercancel', cancelAscendHold);
+
+  // Keyboard equivalent of the pointer hold above: holding Enter or Space
+  // fills the bar the same way holding a finger/mouse down does. Without
+  // this, keyboard users could not ascend at all — the button only ever
+  // listened for pointer events.
+  function isHoldKey(e){ return e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter'; }
+  ascendBtnEl.addEventListener('keydown', function(e){
+    if(!isHoldKey(e) || e.repeat) return;
+    startAscendHold(e);
+  });
+  ascendBtnEl.addEventListener('keyup', function(e){
+    if(!isHoldKey(e)) return;
+    cancelAscendHold();
+  });
+  ascendBtnEl.addEventListener('blur', cancelAscendHold);
 
   /* =========================================================
      MUTE
@@ -3146,6 +3264,7 @@
     renderMusicPanel();
     musicModalEl.classList.add('open');
     musicModalEl.setAttribute('aria-hidden', 'false');
+    onModalOpen(musicModalEl);
     startMusicCreditTimer();
   }
   function closeMusicModal(){
@@ -3153,6 +3272,7 @@
     musicModalEl.setAttribute('aria-hidden', 'true');
     stopMusicCreditTimer();
     musicShowCredit = false;
+    onModalClose();
   }
 
   musicBtn.addEventListener('click', openMusicModal);
@@ -3338,9 +3458,14 @@
       lcdDinoCameoEl.style.display = 'none';
       lcdDinoCameoEl.setAttribute('aria-hidden', 'true');
       lcdDinoCameoEl.removeEventListener('pointerdown', onTap);
+      lcdDinoCameoEl.removeEventListener('click', onTap);
       lcdDinoCameoEl.removeEventListener('animationend', onDone);
     }
     lcdDinoCameoEl.addEventListener('pointerdown', onTap, { once:true });
+    // Native button keyboard activation (Enter/Space) fires 'click', not
+    // 'pointerdown' — without this, a keyboard user tabbing to the cameo
+    // could never actually trigger it.
+    lcdDinoCameoEl.addEventListener('click', onTap, { once:true });
     lcdDinoCameoEl.addEventListener('animationend', onDone, { once:true });
   }
 
@@ -3376,9 +3501,11 @@
       lcdBalloonCameoEl.style.display = 'none';
       lcdBalloonCameoEl.setAttribute('aria-hidden', 'true');
       lcdBalloonCameoEl.removeEventListener('pointerdown', onTap);
+      lcdBalloonCameoEl.removeEventListener('click', onTap);
       lcdBalloonCameoEl.removeEventListener('animationend', onDone);
     }
     lcdBalloonCameoEl.addEventListener('pointerdown', onTap, { once:true });
+    lcdBalloonCameoEl.addEventListener('click', onTap, { once:true });
     lcdBalloonCameoEl.addEventListener('animationend', onDone, { once:true });
   }
 

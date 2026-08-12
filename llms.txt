@@ -6,10 +6,10 @@ CALC-U-LATOR is a free-to-play browser idle/clicker game. Progress (digits unloc
 
 ## Pages
 
-- [Play CALC-U-LATOR](https://calc-u-lator.com/index.html): The game itself — an idle clicker where players earn calculator digits, operators, and Auto-Solver automation upgrades.
-- [About](https://calc-u-lator.com/about.html): Background on Plasticine Games, the story behind CALC-U-LATOR, music credits, and contact information.
-- [Privacy Policy](https://calc-u-lator.com/privacy.html): How player data (local storage) and any third-party ad providers (e.g. Google AdSense) handle information.
-- [Terms of Use](https://calc-u-lator.com/terms.html): Legal terms governing use of the site and game.
+- [Play CALC-U-LATOR](https://calc-u-lator.io/index.html): The game itself — an idle clicker where players earn calculator digits, operators, and Auto-Solver automation upgrades.
+- [About](https://calc-u-lator.io/about.html): Background on Plasticine Games, the story behind CALC-U-LATOR, music credits, and contact information.
+- [Privacy Policy](https://calc-u-lator.io/privacy.html): How player data (local storage) and any third-party ad providers (e.g. Google AdSense) handle information.
+- [Terms of Use](https://calc-u-lator.io/terms.html): Legal terms governing use of the site and game.
 
 ## Notes
 

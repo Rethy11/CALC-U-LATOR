@@ -1028,9 +1028,13 @@
   .key.locked.no-afford:hover{ background-color:#67362e !important; }
   .key.locked.afford{ background-color:#3c6a35 !important; }
   .key.locked.afford:hover{ background-color:#47793f !important; }
-  .key.locked::after{
-    content:"\1F512"; position:absolute; top:3px; right:5px; font-size:0.6rem; opacity:0.7;
+  /* Padlock sprite (drawn SVG, #lockIcon) shown in the corner of every
+     locked key; it inherits the key's dimmed text color. */
+  .key-lock-icon{
+    display:none; position:absolute; top:4px; right:5px;
+    width:13px; height:13px; opacity:0.85; pointer-events:none;
   }
+  .key.locked .key-lock-icon{ display:block; }
   .key.selected{
     background-image:none !important;
     background-color:#3c6a35 !important;
@@ -1368,6 +1372,12 @@
     <path d="M10.5 5.1c2.6-.5 4.6.7 4.9 3.1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <ellipse cx="7.9" cy="17.6" rx="2.7" ry="2" transform="rotate(-14 7.9 17.6)" fill="none" stroke="currentColor" stroke-width="1.4"/>
   </symbol>
+  <symbol id="lockIcon" viewBox="0 0 24 24">
+    <path d="M8.2 11.2V8.3c0-2.2 1.6-3.9 3.8-3.9s3.8 1.7 3.8 3.9v2.9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5.9 11.3l12.2-.1c.6 0 1 .4 1 1l-.1 7.2c0 .6-.4 1-1 1L6 20.5c-.6 0-1-.4-1-1l.1-7.3c0-.5.3-.9.8-.9z" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+    <circle cx="12" cy="15.1" r="1.35" fill="currentColor"/>
+    <path d="M12 16.2v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
   <symbol id="lightningBolt" viewBox="0 0 24 24">
     <path d="M13.4 2.6 6.9 13.6l4.4-.3-1.5 8.1 8.1-11.7-4.6.2z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
   </symbol>
@@ -1627,25 +1637,25 @@
 
         <div class="keypad" id="keypad">
           <button class="key key-util btn-c" data-action="solvers" aria-label="Open Auto-Solvers">SOLVE</button>
-          <button class="key key-op btn-fact locked" data-value="!" aria-label="Factorial">!</button>
-          <button class="key key-op btn-pow locked" data-value="^" aria-label="Exponent">^</button>
+          <button class="key key-op btn-fact locked" data-value="!" aria-label="Factorial">!<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-op btn-pow locked" data-value="^" aria-label="Exponent">^<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
 
-          <button class="key key-num btn-7 locked" data-value="7">7</button>
-          <button class="key key-num btn-8 locked" data-value="8">8</button>
-          <button class="key key-num btn-9 locked" data-value="9">9</button>
-          <button class="key key-op btn-mul locked" data-value="*" aria-label="Multiply">×</button>
+          <button class="key key-num btn-7 locked" data-value="7">7<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-num btn-8 locked" data-value="8">8<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-num btn-9 locked" data-value="9">9<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-op btn-mul locked" data-value="*" aria-label="Multiply">×<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
 
-          <button class="key key-num btn-4 locked" data-value="4">4</button>
-          <button class="key key-num btn-5 locked" data-value="5">5</button>
-          <button class="key key-num btn-6 locked" data-value="6">6</button>
+          <button class="key key-num btn-4 locked" data-value="4">4<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-num btn-5 locked" data-value="5">5<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-num btn-6 locked" data-value="6">6<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
           <button class="key key-op btn-plus" data-value="+" aria-label="Plus">+</button>
 
           <button class="key key-num btn-1" data-value="1">1</button>
-          <button class="key key-num btn-2 locked" data-value="2">2</button>
-          <button class="key key-num btn-3 locked" data-value="3">3</button>
+          <button class="key key-num btn-2 locked" data-value="2">2<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
+          <button class="key key-num btn-3 locked" data-value="3">3<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
           <button class="key key-eq btn-eq" data-action="equals" aria-label="Equals">=</button>
 
-          <button class="key key-num btn-0 locked" data-value="0">0</button>
+          <button class="key key-num btn-0 locked" data-value="0">0<svg class="key-lock-icon" aria-hidden="true"><use href="#lockIcon"></use></svg></button>
           <button class="btn-chip" id="memBtn" data-action="ascend" aria-label="Open Memory Bank / Ascension">MEM</button>
         </div>
       </div>

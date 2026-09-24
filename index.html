@@ -918,34 +918,49 @@
     font-family:'IBM Plex Mono'; font-size:0.6rem; color:var(--lcd-text-dim);
     text-align:center; margin-top:4px;
   }
+  /* Game over: lives on the LCD itself. It's a translucent sheet of LCD
+     "glass" over the whole display (the frozen run stays visible and
+     ghosted behind it), and its text reuses .lcd-score — the exact
+     font/size/glow of the main incrementing number. Layout mirrors the
+     LCD's own rows: big title, small mono label + big score, small mono
+     hint. There is no button; '=' dismisses (see the keypad handler). */
   .dg-gameover{
     display:none; position:absolute; inset:0; z-index:2;
-    flex-direction:column; align-items:center; justify-content:center;
-    background:var(--lcd-bg);
-    padding:4px;
+    flex-direction:column; justify-content:space-between;
+    padding:6px 14px 6px;
+    background:rgba(199,209,163,0.6);
   }
   .dg-gameover.show{ display:flex; }
-  .dg-go-title{
-    font-family:'Space Grotesk'; font-weight:700; letter-spacing:1px;
-    color:var(--lcd-text); font-size:0.72rem; line-height:1;
+  .dg-gameover .lcd-score{
+    /* halo in the LCD color keeps the big glyphs legible over the ghosted run */
+    text-shadow:0 0 8px rgba(43,51,32,0.35), 0 0 3px var(--lcd-bg), 0 0 6px var(--lcd-bg);
+  }
+  .dg-go-title{ text-align:center; }
+  .dg-go-row{
+    /* right-aligned like the main score, leaving the frozen dino visible at left */
+    display:flex; justify-content:flex-end; align-items:flex-end; gap:8px;
   }
   .dg-go-earned{
-    font-family:'IBM Plex Mono'; font-size:0.58rem; color:var(--lcd-text-dim);
-    margin-top:3px; line-height:1;
+    font-family:'IBM Plex Mono'; font-size:0.65rem; color:var(--lcd-text-dim);
+    padding-bottom:6px; white-space:nowrap;
+    text-shadow:0 0 3px var(--lcd-bg), 0 0 6px var(--lcd-bg);
   }
-  .dg-go-score{
-    font-family:'VT323', monospace; font-size:1.5rem; color:var(--lcd-text);
-    line-height:1;
-    margin-top:1px;
+  .dg-go-hint{
+    font-family:'IBM Plex Mono'; font-size:0.62rem; color:var(--lcd-text-dim);
+    text-align:center; line-height:1; white-space:nowrap;
+    text-shadow:0 0 3px var(--lcd-bg), 0 0 6px var(--lcd-bg);
+    opacity:0;
   }
-  .dg-ok-btn{
-    margin-top:5px; min-width:64px;
-    background:var(--accent); color:#1c2a12; border:none; border-radius:6px;
-    padding:3px 14px; font-family:'Space Grotesk'; font-weight:700; font-size:0.68rem;
-    letter-spacing:0.5px; cursor:pointer; line-height:1.6;
-    box-shadow:0 2px 0 rgba(0,0,0,0.3);
-  }
-  .dg-ok-btn:active{ transform:translateY(2px); box-shadow:none; }
+  /* Appears once '=' will actually dismiss (matches DG_DISMISS_DELAY_MS). */
+  .dg-gameover.show .dg-go-hint{ animation:dgGoHintIn 0.01s linear 0.65s forwards; }
+  @keyframes dgGoHintIn{ from{ opacity:0; } to{ opacity:1; } }
+
+  /* Paused scene: the run freezes exactly where the collision happened —
+     the sprite's stepping legs stop mid-stride, and the HUD/hint rows
+     step aside so the game-over text has the display to itself. */
+  .lcd-minigame.over .dino-sprite span{ animation-play-state:paused; }
+  .lcd-minigame.over .dg-hud,
+  .lcd-minigame.over .dg-hint{ visibility:hidden; }
 
   /* Keypad */
   .keypad{
@@ -1599,11 +1614,13 @@
               </div>
             </div>
             <div class="dg-hint">tap = to jump</div>
-            <div class="dg-gameover" id="dgGameOver">
-              <div class="dg-go-title">GAME OVER</div>
-              <div class="dg-go-earned">You Earned:</div>
-              <div class="dg-go-score" id="dgFinalScore">0</div>
-              <button class="dg-ok-btn" id="dgOkBtn" type="button">OK</button>
+            <div class="dg-gameover" id="dgGameOver" role="status">
+              <div class="lcd-score dg-go-title">GAME OVER</div>
+              <div class="dg-go-row">
+                <span class="dg-go-earned">you earned</span>
+                <span class="lcd-score" id="dgFinalScore">0</span>
+              </div>
+              <div class="dg-go-hint">press = to continue</div>
             </div>
           </div>
         </div>
@@ -2449,7 +2466,6 @@
   const dgScoreEl = document.getElementById('dgScore');
   const dgGameOverEl = document.getElementById('dgGameOver');
   const dgFinalScoreEl = document.getElementById('dgFinalScore');
-  const dgOkBtnEl = document.getElementById('dgOkBtn');
   const memBtnEl = document.getElementById('memBtn');
   const muteBtn = document.getElementById('muteBtn');
   const musicBtn = document.getElementById('musicBtn');
@@ -2797,7 +2813,13 @@
       // While the dino minigame owns the LCD, the = key only jumps —
       // it doesn't compute anything, and every other key is disabled
       // so a mid-run tap can't accidentally spend or reselect anything.
-      if(action === 'equals') dinoJump();
+      // Once the run is over, = dismisses the game-over screen instead
+      // (after a brief grace period, so the mash that got you killed
+      // can't skip the screen before you've seen it).
+      if(action === 'equals'){
+        if(!dino.gameOver) dinoJump();
+        else if(performance.now() >= dino.dismissAt) closeDinoGame();
+      }
       return;
     }
     if(action === 'solvers'){ openSolversModal(); return; }
@@ -3759,7 +3781,9 @@
     elapsed:0, lastWholeSec:0, speed:BASE_SPEED,
     obstacleTimer:0, obstacles:[],
     runScore:0,
+    dismissAt:0,
   };
+  const DG_DISMISS_DELAY_MS = 650; // keep in sync with .dg-go-hint's animation delay
 
   // A cameo balloon is the other possible LCD "event" — tapping it
   // doesn't open a minigame, it just triggers a timed frenzy multiplier.
@@ -4073,6 +4097,7 @@
     dgPlayerEl.style.transform = 'translateY(0)';
     dgScoreEl.textContent = '0';
     dgGameOverEl.classList.remove('show');
+    lcdMinigameEl.classList.remove('over');
     lcdMinigameEl.classList.add('active');
     lcdMinigameEl.setAttribute('aria-hidden', 'false');
     beep(440, 0.06, 0.04);
@@ -4159,6 +4184,8 @@
     cancelAnimationFrame(dino.raf);
     playDinoGameOverSound();
     dgFinalScoreEl.textContent = formatScoreMain(dino.runScore);
+    dino.dismissAt = performance.now() + DG_DISMISS_DELAY_MS;
+    lcdMinigameEl.classList.add('over');   // freeze the scene as-is (no clearing)
     dgGameOverEl.classList.add('show');
     if(dino.runScore > 0){
       printTape('DINO RUN  ' + Math.floor(dino.elapsed) + 's = ' + formatCompact(dino.runScore), true);
@@ -4169,6 +4196,7 @@
     dino.active = false;
     lcdMinigameEl.classList.remove('active');
     lcdMinigameEl.setAttribute('aria-hidden', 'true');
+    lcdMinigameEl.classList.remove('over');
     dgGameOverEl.classList.remove('show');
     dino.obstacles.forEach(o => o.el.remove());
     dino.obstacles = [];
@@ -4176,12 +4204,9 @@
     scheduleCameoEvent();
   }
 
-  dgOkBtnEl.addEventListener('click', closeDinoGame);
-
   // Tapping anywhere on the LCD is a second way to jump, alongside the
   // = key. dinoJump() already no-ops once the run is over (or mid-jump),
-  // so this is safe even when the tap lands on the OK button itself —
-  // that button's own click handler still fires afterward as normal.
+  // so a tap on the frozen game-over screen does nothing — only = leaves it.
   lcdMinigameEl.addEventListener('pointerdown', ()=> dinoJump());
 
   /* =========================================================

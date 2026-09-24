@@ -1103,21 +1103,22 @@
   }
 
   /* ---------- Ad banner (main screen only) ----------
-     Fixed to the bottom of the viewport and deliberately OUTSIDE .desk
-     (the desk's transform would otherwise turn 'fixed' into 'relative to
-     the desk'). Hidden by default; the script shows it only while the main
-     screen is up (title screen dismissed, no modal open). Hiding uses
-     visibility, so it never touches layout. Space is reserved for it only
-     while an ad has actually rendered (--ad-reserve on <html>, 0px
-     otherwise), and the fit-to-screen scaler accounts for that reserve, so
-     the desk shrinks a touch instead of sliding under the banner.
-     Tweak --ad-max-h to change the tallest the ad slot is allowed to get. */
-  :root{ --ad-max-h:90px; }
+     A 320x50 iframe banner fixed flush to the bottom of the viewport. It
+     lives OUTSIDE .desk (the desk's transform would otherwise turn 'fixed'
+     into 'relative to the desk'). Hidden by default; the script shows it
+     only while the main screen is up (title screen dismissed, no modal
+     open). Hiding uses visibility, so it never touches layout. Space is
+     reserved for it (--ad-reserve on <html>) only once the ad has actually
+     rendered, and the fit-to-screen scaler accounts for that reserve, so
+     the desk shrinks a touch instead of sliding under the banner. The slot
+     ignores taps until the ad is ready, so an empty/blocked ad can never
+     cover the footer links. */
+  :root{ --ad-h:50px; --ad-w:320px; }
   .ad-banner{
     position:fixed; left:0; right:0; bottom:0; z-index:10;
     display:flex; justify-content:center;
-    padding:0 max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left));   /* flush with the bottom edge */
-    pointer-events:none;              /* transparent padding never eats taps */
+    padding:0;                        /* flush with the bottom edge */
+    pointer-events:none;
     visibility:hidden; opacity:0;
     transition:opacity 0.25s ease, visibility 0s linear 0.25s;
   }
@@ -1126,13 +1127,12 @@
     transition:opacity 0.25s ease, visibility 0s;
   }
   .ad-slot{
-    width:100%; max-width:728px;
-    max-height:var(--ad-max-h);
+    width:var(--ad-w); max-width:100%; height:var(--ad-h);
     overflow:hidden;
-    pointer-events:auto;
-    text-align:center;
+    pointer-events:none;
   }
-  .ad-slot iframe, .ad-slot img{ display:block; margin:0 auto; vertical-align:bottom; }
+  .ad-slot.ready{ pointer-events:auto; }
+  .ad-slot iframe{ display:block; border:0; margin:0 auto; }
 
   /* ---------- Modals ---------- */
   .modal-overlay{
@@ -1646,9 +1646,7 @@
 
 <!-- AD BANNER: bottom of the main screen only (see "AD BANNER" in the script) -->
 <div class="ad-banner" id="adBanner" role="complementary" aria-label="Advertisement">
-  <div class="ad-slot" id="adSlot">
-    <div id="container-fc84cc69b537a764d032e2f8cb829e9d"></div>
-  </div>
+  <div class="ad-slot" id="adSlot"></div>
 </div>
 
 <!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->
@@ -3589,24 +3587,30 @@
   /* =========================================================
      AD BANNER
      Shown only on the main screen: never on the title/studio splash,
-     and hidden while any modal (purchase, solvers, memory bank, tape
-     deck, achievements) is open. The ad script isn't even requested
-     until the title screen is dismissed, so nothing loads or counts an
-     impression while the banner can't be seen.
+     and hidden while any modal (purchase, Auto-Solvers, Memory Bank, tape
+     deck, achievements) is open. The ad isn't requested until the title
+     screen is dismissed, so nothing loads or counts an impression while
+     the banner can't be seen.
+     The network's tag uses document.write, which browsers ignore in
+     scripts added after page load, so the tag runs inside a small
+     same-origin srcdoc iframe (where it is parsed normally) instead.
      Layout: the banner is position:fixed, so it can't reflow anything by
-     itself. While an ad has rendered, its height is published as
+     itself. Once the ad has rendered, its height is published as
      --ad-reserve so the desk scales to fit above it; with no ad (blocked,
      failed, still loading) the reserve is 0 and nothing changes. The
      reserve deliberately stays put while a modal is open so the desk
      behind the dimmed overlay doesn't jump every time one opens.
   ========================================================= */
+  const AD_KEY = '11bea5eaa6360aac7a8290a4b76b7ca8';
+  const AD_W = 320, AD_H = 50;
+  const AD_SRC = 'https://www.highrevenueformat.com/' + AD_KEY + '/invoke.js';
   const adBannerEl = document.getElementById('adBanner');
   const adSlotEl = document.getElementById('adSlot');
   let adStarted = false;
 
   function updateAdReserve(){
     const rootStyle = document.documentElement.style;
-    const wanted = (adStarted && adSlotEl.offsetHeight > 0)
+    const wanted = (adStarted && adSlotEl.classList.contains('ready'))
       ? adBannerEl.offsetHeight + 4   // banner height + a hair of air above it
       : 0;
     const current = parseFloat(rootStyle.getPropertyValue('--ad-reserve')) || 0;
@@ -3624,12 +3628,42 @@
     if(adStarted) return;
     adStarted = true;
     updateAdVisibility();
-    const s = document.createElement('script');
-    s.async = true;
-    s.setAttribute('data-cfasync', 'false');
-    s.src = 'https://pl31484351.profitableratecpmnetwork.com/fc84cc69b537a764d032e2f8cb829e9d/invoke.js';
-    document.body.appendChild(s);
-    updateAdReserve();
+
+    const frame = document.createElement('iframe');
+    frame.width = AD_W;
+    frame.height = AD_H;
+    frame.setAttribute('scrolling', 'no');
+    frame.setAttribute('frameborder', '0');
+    frame.title = 'Advertisement';
+    frame.srcdoc =
+      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+      '<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>' +
+      '</head><body>' +
+      '<script>atOptions={"key":"' + AD_KEY + '","format":"iframe","height":' + AD_H +
+        ',"width":' + AD_W + ',"params":{}};<\/script>' +
+      '<script src="' + AD_SRC + '"><\/script>' +
+      '</body></html>';
+    adSlotEl.appendChild(frame);
+
+    // The slot only counts as "ready" (tappable, space reserved) once the
+    // network has actually put something in the frame. Give it ~10s; if it
+    // never does (ad blocker, no fill, offline) the slot stays inert.
+    let tries = 0;
+    const timer = setInterval(function(){
+      tries++;
+      let rendered = false;
+      try{
+        const body = frame.contentDocument && frame.contentDocument.body;
+        rendered = !!(body && body.querySelector('iframe, img, ins, a, div'));
+      }catch(e){}
+      if(rendered){
+        clearInterval(timer);
+        adSlotEl.classList.add('ready');
+        updateAdReserve();
+      } else if(tries >= 40){
+        clearInterval(timer);
+      }
+    }, 250);
   }
 
   // Modals open/close by toggling .open on each overlay.
@@ -3638,12 +3672,6 @@
     document.querySelectorAll('.modal-overlay').forEach(function(m){
       adModalObserver.observe(m, { attributes:true, attributeFilter:['class'] });
     });
-  }
-  // The ad fills its slot asynchronously; track its rendered size.
-  if(window.ResizeObserver){
-    new ResizeObserver(updateAdReserve).observe(adSlotEl);
-  } else {
-    setInterval(updateAdReserve, 1000);
   }
   window.addEventListener('resize', updateAdReserve);
   window.addEventListener('orientationchange', updateAdReserve);

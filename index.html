@@ -214,9 +214,16 @@
   .title-screen{
     position:fixed; inset:0; z-index:100;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
+    /* same maple-laminate desk as the main screen (see body{}), so the
+       title feels like it's sitting on the same tabletop, not a separate
+       backdrop */
     background:
-      radial-gradient(ellipse at 30% -10%, #35302a 0%, transparent 55%),
-      linear-gradient(180deg, var(--bg-desk-1), var(--bg-desk-2));
+      linear-gradient(115deg, rgba(255,250,235,0.26) 0%, rgba(255,250,235,0) 38%, rgba(255,250,235,0) 68%, rgba(110,62,15,0.12) 100%),
+      var(--desk-grain),
+      var(--desk-fine),
+      radial-gradient(ellipse 90% 80% at 45% 40%, var(--desk-top-hi) 0%, var(--desk-top) 55%, var(--desk-top-lo) 100%);
+    background-size:auto, 700px 500px, 160px 160px, auto;
+    box-shadow:inset 0 0 0 1px rgba(255,236,200,0.35), inset 0 0 90px rgba(112,64,18,0.30);
     text-align:center;
     padding:20px;
     cursor:pointer;
@@ -225,7 +232,7 @@
     border:none;
     margin:0;
     font-family:'Space Grotesk', sans-serif;
-    color:var(--text-light);
+    color:var(--desk-ink);
     -webkit-appearance:none;
     appearance:none;
     touch-action:manipulation;
@@ -234,50 +241,73 @@
   .title-screen.hide{ opacity:0; pointer-events:none; }
 
   .title-face{ display:flex; flex-direction:column; align-items:center; }
-  .title-lcd{
-    display:flex; align-items:center; gap:8px;
+
+  /* ---------- title LCD: same green-glass screen as the in-game display
+     (.lcd), carrying the game name/subhead set in the exact font+glow of
+     the "GAME OVER" text (.lcd-score) rather than the page's UI typeface. ---------- */
+  .title-lcd-panel{
     background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
-    border-radius:8px;
-    padding:6px 16px;
-    box-shadow:inset 0 2px 8px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579;
-    margin-bottom:18px;
+    border-radius:10px;
+    padding:24px 22px 20px;
+    margin-bottom:26px;
+    max-width:360px;
+    width:min(82vw, 360px);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579, 0 10px 26px -8px rgba(0,0,0,0.55);
   }
-  .title-lcd-led{
-    width:8px; height:8px; border-radius:50%; flex:0 0 auto;
-    background:#4a4238;
-    animation:titleLedBlink 2.6s infinite ease-in-out;
+  .title-lcd-h1{
+    font-family:'VT323', monospace; font-weight:400;
+    font-size:clamp(2.3rem, 10.5vw, 3.4rem); line-height:1;
+    margin:0; letter-spacing:1px; color:var(--lcd-text);
+    text-shadow:0 0 8px rgba(43,51,32,0.35);
   }
-  @keyframes titleLedBlink{
-    0%,88%,100%{ background:#8fe06a; box-shadow:0 0 6px 2px rgba(143,224,106,0.7); }
-    94%{ background:#4a4238; box-shadow:none; }
+  .title-lcd-tag{
+    font-family:'VT323', monospace;
+    color:var(--lcd-text-dim); font-size:1.2rem; letter-spacing:2px;
+    text-transform:uppercase; margin-top:6px;
+    text-shadow:0 0 3px var(--lcd-bg), 0 0 6px var(--lcd-bg);
   }
-  .title-lcd-text{
-    font-family:'VT323', monospace; font-size:1.15rem; letter-spacing:1.5px; color:var(--lcd-text);
+
+  /* ---------- power switch: a physical rocker above the tap prompt, in
+     the same dark case plastic as the mute/music/achievement chips. Purely
+     decorative (the whole screen is already the tap target); it just
+     flicks over on press for a bit of tactile feedback. ---------- */
+  .power-switch{
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    margin-top:min(6vh, 40px);
   }
-  .title-face h1{
-    font-family:'Space Grotesk', sans-serif; font-weight:700;
-    font-size:clamp(2rem, 8vh, 3rem); margin:0; letter-spacing:0.5px; color:var(--text-light);
+  .power-switch-track{
+    position:relative;
+    width:84px; height:42px; border-radius:21px;
+    background:linear-gradient(160deg, var(--case-hi), var(--case) 55%, var(--case-lo));
+    border:1px solid #100c09;
+    box-shadow:inset 0 3px 7px rgba(0,0,0,0.55), inset 0 -1px 0 rgba(255,255,255,0.08);
   }
-  .title-face .tag{
+  .power-switch-knob{
+    position:absolute; top:4px; left:4px;
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(160deg, var(--key-num-lt), var(--key-num-dk));
+    box-shadow:0 1px 3px rgba(0,0,0,0.45);
+    transition:transform 0.15s ease;
+  }
+  .title-screen:active .power-switch-knob{ transform:translateX(40px); }
+  .power-switch-label{
     font-family:'IBM Plex Mono', monospace;
-    color:var(--text-dim); font-size:0.78rem; letter-spacing:0.1em;
-    text-transform:uppercase; margin-top:8px;
+    font-size:0.68rem; letter-spacing:0.2em; color:var(--desk-ink-dim);
+    text-transform:uppercase;
   }
-  .title-rules{
-    text-align:center; color:var(--text-dim); font-size:0.85rem; line-height:1.4;
-    margin:16px auto 0; max-width:340px;
-  }
-  .title-rules b{ color:var(--text-light); font-weight:600; }
+
   .title-face .tap-prompt{
     font-family:'IBM Plex Mono', monospace;
-    margin-top:min(8vh, 56px);
-    color:var(--accent);
-    font-size:0.82rem;
-    letter-spacing:0.12em;
+    margin-top:14px;
+    color:var(--desk-ink);
+    font-weight:600;
+    font-size:1rem;
+    letter-spacing:0.14em;
     text-transform:uppercase;
+    text-shadow:0 1px 0 rgba(255,250,235,0.4);
     animation:pulseTap 1.8s ease-in-out infinite;
   }
-  @keyframes pulseTap{ 0%,100%{opacity:0.35;} 50%{opacity:1;} }
+  @keyframes pulseTap{ 0%,100%{opacity:0.75;} 50%{opacity:1;} }
 
   /* ---------- studio splash: exact palette/type of the Plasticine Games
      bumper — dropped in wholesale rather than reskinned, since it's shared
@@ -352,7 +382,6 @@
   .title-blackout.show{ opacity:1; }
 
   @media (prefers-reduced-motion: reduce){
-    .title-lcd-led{ animation:none !important; }
     .title-face .tap-prompt{ animation:none !important; }
     .studio-face .eyes.blink-once span,
     .studio-face .eyes.glitch-out,
@@ -368,10 +397,20 @@
     margin-bottom:18px;
   }
   .topbar h1{
-    font-size:1.4rem; letter-spacing:0.5px; color:var(--desk-ink);
-    line-height:1;
-    min-width:0; flex:1 1 auto; overflow:hidden;
+    /* same green-glass screen + glowing VT323 text as the in-game LCD
+       (.lcd / .lcd-score) and the title screen's .title-lcd-h1, just
+       scaled down to sit inline in the top bar. */
+    font-family:'VT323', monospace; font-weight:400;
+    font-size:2rem; letter-spacing:1px; line-height:1;
+    min-width:0; flex:0 1 auto; overflow:hidden;
     text-overflow:ellipsis; white-space:nowrap;
+    width:fit-content; max-width:100%;
+    color:var(--lcd-text);
+    text-shadow:0 0 8px rgba(43,51,32,0.35);
+    background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
+    border-radius:8px;
+    padding:4px 12px 3px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579;
   }
   .topbar .stats{display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-dim); flex:0 0 auto;}
   .topbar .stats b{color:var(--accent); font-weight:600;}
@@ -1441,16 +1480,14 @@
 
 <button type="button" class="title-screen" id="titleScreen" aria-label="Tap to play">
   <div class="title-face" id="titleFace">
-    <div class="title-lcd" aria-hidden="true">
-      <span class="title-lcd-led"></span>
-      <span class="title-lcd-text">CC&#8209;1 READY</span>
+    <div class="title-lcd-panel" aria-hidden="true">
+      <h1 class="title-lcd-h1">CALC&#8209;U&#8209;LATOR</h1>
+      <div class="title-lcd-tag">Model CC&#8209;1 &middot; Idle Calculator</div>
     </div>
-    <h1>CALC&#8209;U&#8209;LATOR</h1>
-    <div class="tag">Model CC&#8209;1 &middot; Idle Calculator</div>
-    <p class="title-rules">
-      Tap a <b>digit</b> and an <b>operator</b>, mash <b>=</b>, and cash in the result.
-      Unlock new keys, automate the math, and rack up score forever.
-    </p>
+    <div class="power-switch" aria-hidden="true">
+      <div class="power-switch-track"><span class="power-switch-knob"></span></div>
+      <span class="power-switch-label">power</span>
+    </div>
     <div class="tap-prompt">tap to power on</div>
   </div>
   <div class="studio-face" id="studioFace">
@@ -3723,6 +3760,26 @@
     frame.setAttribute('scrolling', 'no');
     frame.setAttribute('frameborder', '0');
     frame.title = 'Advertisement';
+    // Lock the ad down to "run its script and paint pixels inside its own
+    // box" — nothing else. allow-scripts is required for the network's tag
+    // to render at all; everything it's missing is deliberate:
+    //  - no allow-top-navigation / allow-top-navigation-by-user-activation:
+    //    the ad (or a nested creative inside it) cannot redirect the whole
+    //    tab, which is how these networks hijack the page.
+    //  - no allow-popups: window.open() calls (popups/popunders) are
+    //    blocked outright instead of merely being caught by the browser's
+    //    heuristic popup blocker.
+    //  - no allow-modals: it can't throw up fake alert/confirm dialogs.
+    //  - no allow-same-origin: the frame gets a unique opaque origin, so
+    //    the ad script can't read/write this page's storage or DOM.
+    // A nested iframe the ad tag injects for the creative itself can never
+    // be granted more than this, so the restriction holds through the
+    // whole chain, not just the outer tag.
+    // Trade-off: a legitimate click-to-visit-the-advertiser stops working
+    // too, since that's also a form of "popup/navigation." For a banner
+    // slot, that's the right side to fail on.
+    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
     frame.srcdoc =
       '<!DOCTYPE html><html><head><meta charset="utf-8">' +
       '<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}</style>' +
@@ -3733,25 +3790,17 @@
       '</body></html>';
     adSlotEl.appendChild(frame);
 
-    // The slot only counts as "ready" (tappable, space reserved) once the
-    // network has actually put something in the frame. Give it ~10s; if it
-    // never does (ad blocker, no fill, offline) the slot stays inert.
-    let tries = 0;
-    const timer = setInterval(function(){
-      tries++;
-      let rendered = false;
-      try{
-        const body = frame.contentDocument && frame.contentDocument.body;
-        rendered = !!(body && body.querySelector('iframe, img, ins, a, div'));
-      }catch(e){}
-      if(rendered){
-        clearInterval(timer);
-        adSlotEl.classList.add('ready');
-        updateAdReserve();
-      } else if(tries >= 40){
-        clearInterval(timer);
-      }
-    }, 250);
+    // Peeking into the frame to confirm an ad actually painted (the old
+    // approach) needs allow-same-origin, which is exactly what the sandbox
+    // above deliberately withholds — granting it would let the ad's script
+    // reach back into this page's real DOM and storage, which is worse
+    // than the problem we're fixing. So "ready" now just means "the tag
+    // has had time to run," not "confirmed non-empty": give it a moment,
+    // then reserve the slot's space regardless of whether it filled.
+    setTimeout(function(){
+      adSlotEl.classList.add('ready');
+      updateAdReserve();
+    }, 1200);
   }
 
   // Modals open/close by toggling .open on each overlay.

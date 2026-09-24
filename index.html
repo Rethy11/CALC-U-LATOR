@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#1b1a19">
+<meta name="theme-color" content="#dcae6d">
 <title>CALC-U-LATOR — Model CC-1</title>
 <meta name="description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
 
@@ -29,6 +29,17 @@
   :root{
     --bg-desk-1:#15110d;
     --bg-desk-2:#211a14;
+
+    /* ---- school-desk tabletop (the surface the calculator "rests" on):
+       warm maple laminate + the speckled carpet visible past its edge ---- */
+    --desk-top:#dcae6d;
+    --desk-top-hi:#e9c489;
+    --desk-top-lo:#c99852;
+    --desk-ink:#3b2712;
+    --desk-ink-dim:#5a3f1e;
+    --desk-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0035 0.3' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.46  0 0 0 0 0.27  0 0 0 0 0.08  1.3 0 0 0 -0.5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23g%29'/%3E%3C/svg%3E");
+    --desk-fine:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.2  0 0 0 0 0.06  0 0 0 0.7 -0.22'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+    --carpet-speck:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' seed='23' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55  0 0 0 0 0.42  0 0 0 0 0.32  0 0 0 2.2 -0.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23c%29'/%3E%3C/svg%3E");
     --case:#332821;
     --case-hi:#4d3b2c;
     --case-lo:#1c1510;
@@ -115,7 +126,9 @@
   *, *::before, *::after{ touch-action:manipulation; }
   html{
     margin:0; padding:0; height:100%;
-    background:var(--bg-desk-1);
+    background:
+      var(--carpet-speck),
+      #e6d9c6;
     overflow:hidden; overscroll-behavior:none;
   }
   body{
@@ -123,9 +136,17 @@
     height:100vh; height:100dvh;
     min-height:100vh; min-height:100dvh;
     overflow:hidden; overscroll-behavior:none;
+    /* maple laminate tabletop: soft window-light sheen over long horizontal
+       grain streaks, a fine speckle, and a gentle lit-center falloff */
     background:
-      radial-gradient(ellipse at 30% -10%, #35302a 0%, transparent 55%),
-      linear-gradient(180deg, var(--bg-desk-1), var(--bg-desk-2));
+      linear-gradient(115deg, rgba(255,250,235,0.26) 0%, rgba(255,250,235,0) 38%, rgba(255,250,235,0) 68%, rgba(110,62,15,0.12) 100%),
+      var(--desk-grain),
+      var(--desk-fine),
+      radial-gradient(ellipse 90% 80% at 45% 40%, var(--desk-top-hi) 0%, var(--desk-top) 55%, var(--desk-top-lo) 100%);
+    background-size:auto, 700px 500px, 160px 160px, auto;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,236,200,0.35),
+      inset 0 0 90px rgba(112,64,18,0.30);
     font-family:'IBM Plex Mono', monospace;
     color:var(--text-light);
     display:flex;
@@ -141,6 +162,22 @@
     -ms-user-select:none;
     user-select:none;
     touch-action:manipulation;
+  }
+  /* On roomy screens the tabletop is inset with rounded corners, so the
+     carpet shows around it like the desk in the reference photo. */
+  @media (min-width:900px) and (min-height:680px){
+    body{
+      margin:18px;
+      height:calc(100vh - 36px); height:calc(100dvh - 36px);
+      min-height:0;
+      border-radius:38px;
+      box-shadow:
+        inset 0 0 0 3px rgba(150,96,36,0.35),
+        inset 0 0 0 4px rgba(255,236,200,0.30),
+        inset 0 0 90px rgba(112,64,18,0.30),
+        0 2px 4px rgba(70,45,20,0.35),
+        0 18px 40px -8px rgba(70,45,20,0.45);
+    }
   }
   h1,h2,h3{font-family:'Space Grotesk', sans-serif; margin:0;}
   button{font-family:inherit;}
@@ -314,11 +351,11 @@
     display:flex; align-items:center; justify-content:space-between;
     flex-wrap:nowrap; gap:8px 12px;
     padding:10px 4px 16px;
-    border-bottom:1px solid #3a352e;
+    border-bottom:1px solid rgba(90,55,20,0.32);
     margin-bottom:18px;
   }
   .topbar h1{
-    font-size:1.4rem; letter-spacing:0.5px; color:var(--text-light);
+    font-size:1.4rem; letter-spacing:0.5px; color:var(--desk-ink);
     line-height:1;
     min-width:0; flex:1 1 auto; overflow:hidden;
     text-overflow:ellipsis; white-space:nowrap;
@@ -326,23 +363,28 @@
   .topbar .stats{display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-dim); flex:0 0 auto;}
   .topbar .stats b{color:var(--accent); font-weight:600;}
   .mute-btn{
-    background:none; border:1px solid #4a453d; color:var(--text-dim);
-    border-radius:6px; padding:6px; font-size:0.85rem; cursor:pointer;
+    /* dark "calculator plastic" chips: light icons on dark keep strong
+       contrast against the pale maple desk */
+    background:linear-gradient(160deg, var(--case-hi), var(--case) 55%, var(--case-lo));
+    border:1px solid #1c1510; color:var(--text-light);
+    border-radius:8px; padding:7px; font-size:0.85rem; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 0 rgba(40,20,5,0.55), 0 4px 8px -2px rgba(60,30,5,0.45);
   }
-  .mute-btn:hover{color:var(--text-light); border-color:var(--text-dim);}
-  .music-btn.on{color:var(--accent); border-color:var(--accent);}
-  .btn-icon-svg{ width:16px; height:16px; display:block; }
+  .mute-btn:hover{color:#fff; background:linear-gradient(160deg, #5a4633, #3d3026 55%, #241b14);}
+  .mute-btn:active{transform:translateY(1px); box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 0 rgba(40,20,5,0.55);}
+  .music-btn.on{color:#9bd07a; border-color:#1c1510;}
+  .btn-icon-svg{ width:18px; height:18px; display:block; }
   .bolt-icon-svg{ width:0.85em; height:0.85em; display:inline-block; vertical-align:-0.05em; }
 
   /* ---------- Achievements tab button + badge ---------- */
-  .achieve-btn{ position:relative; color:#d6a940; border-color:#5a4a2c; }
-  .achieve-btn:hover{ color:#f0c04a; border-color:#8a6d2e; }
+  .achieve-btn{ position:relative; color:#f0c04a; }
+  .achieve-btn:hover{ color:#ffd76a; }
   .achieve-badge{
     position:absolute; top:-5px; right:-5px;
     width:11px; height:11px; border-radius:50%;
     background:var(--danger);
-    box-shadow:0 0 0 2px var(--bg-desk-1), 0 0 6px 1px rgba(176,80,63,0.8);
+    box-shadow:0 0 0 2px var(--desk-top), 0 0 6px 1px rgba(176,80,63,0.8);
     display:none;
     animation:achieveBadgePulse 1.6s ease-in-out infinite;
   }
@@ -427,9 +469,10 @@
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.09),
       inset 0 -14px 26px rgba(0,0,0,0.4),
-      0 2px 0 rgba(0,0,0,0.55),
-      0 30px 55px -20px rgba(0,0,0,0.8),
-      0 60px 90px -45px rgba(0,0,0,0.65);
+      0 2px 0 rgba(40,20,5,0.55),
+      0 4px 6px rgba(55,28,6,0.35),
+      0 26px 40px -16px rgba(60,30,5,0.6),
+      0 55px 75px -40px rgba(60,30,5,0.45);
     position:relative;
   }
   .brand-row{
@@ -1298,18 +1341,18 @@
   footer.note{
     display:flex; align-items:center; justify-content:center;
     gap:12px; flex-wrap:wrap;
-    text-align:center; color:#5f594d; font-size:0.7rem; margin-top:26px;
+    text-align:center; color:var(--desk-ink-dim); font-size:0.7rem; margin-top:26px;
     font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:0.3px;
   }
   footer.note a{
-    color:#8b8272; text-decoration:none;
+    color:#4a3218; text-decoration:none;
     border-bottom:1px solid transparent;
     padding-bottom:1px;
   }
   footer.note a:hover, footer.note a:focus-visible{
-    color:var(--accent); border-color:var(--accent);
+    color:#2f5a17; border-color:#2f5a17;
   }
-  footer.note .dot{ color:#4a453d; }
+  footer.note .dot{ color:#8a6a3a; }
 
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }

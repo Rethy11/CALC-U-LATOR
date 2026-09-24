@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#dcae6d">
+<meta name="theme-color" content="#c4924e">
 <title>CALC-U-LATOR — Model CC-1</title>
 <meta name="description" content="An idle clicker about unlocking a calculator. Buy digits, unlock operators, and automate your way to bigger numbers.">
 
@@ -126,9 +126,17 @@
   *, *::before, *::after{ touch-action:manipulation; }
   html{
     margin:0; padding:0; height:100%;
+    /* same laminate as <body>, so the phone's safe areas (notch, home bar,
+       overscroll) blend into the desk instead of showing a lighter color;
+       the carpet only appears on wide screens (see media query below) */
     background:
-      var(--carpet-speck),
-      #e6d9c6;
+      linear-gradient(115deg, rgba(255,250,235,0.26) 0%, rgba(255,250,235,0) 38%, rgba(255,250,235,0) 68%, rgba(110,62,15,0.12) 100%),
+      var(--desk-grain),
+      var(--desk-fine),
+      radial-gradient(ellipse 90% 80% at 45% 40%, var(--desk-top-hi) 0%, var(--desk-top) 55%, var(--desk-top-lo) 100%),
+      var(--desk-top-lo);
+    background-size:auto, 700px 500px, 160px 160px, auto, auto;
+    box-shadow:inset 0 0 90px rgba(112,64,18,0.30);
     overflow:hidden; overscroll-behavior:none;
   }
   body{
@@ -166,6 +174,11 @@
   /* On roomy screens the tabletop is inset with rounded corners, so the
      carpet shows around it like the desk in the reference photo. */
   @media (min-width:900px) and (min-height:680px){
+    html{
+      background:var(--carpet-speck), #e6d9c6;
+      background-size:220px 220px, auto;
+      box-shadow:none;
+    }
     body{
       margin:18px;
       height:calc(100vh - 36px); height:calc(100dvh - 36px);

@@ -134,7 +134,7 @@
     padding:
       max(16px, env(safe-area-inset-top))
       max(14px, env(safe-area-inset-right))
-      max(16px, env(safe-area-inset-bottom))
+      calc(max(16px, env(safe-area-inset-bottom)) + var(--ad-reserve, 0px))
       max(14px, env(safe-area-inset-left));
     -webkit-user-select:none;
     -moz-user-select:none;
@@ -1102,6 +1102,37 @@
     margin-top:8px; letter-spacing:0.3px;
   }
 
+  /* ---------- Ad banner (main screen only) ----------
+     Fixed to the bottom of the viewport and deliberately OUTSIDE .desk
+     (the desk's transform would otherwise turn 'fixed' into 'relative to
+     the desk'). Hidden by default; the script shows it only while the main
+     screen is up (title screen dismissed, no modal open). Hiding uses
+     visibility, so it never touches layout. Space is reserved for it only
+     while an ad has actually rendered (--ad-reserve on <html>, 0px
+     otherwise), and the fit-to-screen scaler accounts for that reserve, so
+     the desk shrinks a touch instead of sliding under the banner.
+     Tweak --ad-max-h to change the tallest the ad slot is allowed to get. */
+  :root{ --ad-max-h:90px; }
+  .ad-banner{
+    position:fixed; left:0; right:0; bottom:0; z-index:10;
+    display:flex; justify-content:center;
+    padding:0 max(14px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    pointer-events:none;              /* transparent padding never eats taps */
+    visibility:hidden; opacity:0;
+    transition:opacity 0.25s ease, visibility 0s linear 0.25s;
+  }
+  .ad-banner.show{
+    visibility:visible; opacity:1;
+    transition:opacity 0.25s ease, visibility 0s;
+  }
+  .ad-slot{
+    width:100%; max-width:728px;
+    max-height:var(--ad-max-h);
+    overflow:hidden;
+    pointer-events:auto;
+    text-align:center;
+  }
+
   /* ---------- Modals ---------- */
   .modal-overlay{
     display:none;
@@ -1612,6 +1643,13 @@
   </footer>
 </div>
 
+<!-- AD BANNER: bottom of the main screen only (see "AD BANNER" in the script) -->
+<div class="ad-banner" id="adBanner" role="complementary" aria-label="Advertisement">
+  <div class="ad-slot" id="adSlot">
+    <div id="container-fc84cc69b537a764d032e2f8cb829e9d"></div>
+  </div>
+</div>
+
 <!-- ITEM PURCHASE MODAL (opens when tapping a locked digit/operator) -->
 <div class="modal-overlay" id="itemModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="itemModalTitle" aria-describedby="itemModalDesc">
   <div class="modal-card">
@@ -1727,7 +1765,8 @@
     const naturalW = deskEl.scrollWidth;
     const naturalH = deskEl.scrollHeight;
     const availW = document.body.clientWidth;
-    const availH = document.body.clientHeight;
+    const adReserve = parseFloat(document.documentElement.style.getPropertyValue('--ad-reserve')) || 0;
+    const availH = document.body.clientHeight - adReserve;
     if(naturalW <= 0 || naturalH <= 0 || availW <= 0 || availH <= 0) return;
     let scale = Math.min(1, availW / naturalW, availH / naturalH);
     if(!isFinite(scale) || scale <= 0) scale = 1;
@@ -3547,6 +3586,68 @@
   }, { once:true });
 
   /* =========================================================
+     AD BANNER
+     Shown only on the main screen: never on the title/studio splash,
+     and hidden while any modal (purchase, solvers, memory bank, tape
+     deck, achievements) is open. The ad script isn't even requested
+     until the title screen is dismissed, so nothing loads or counts an
+     impression while the banner can't be seen.
+     Layout: the banner is position:fixed, so it can't reflow anything by
+     itself. While an ad has rendered, its height is published as
+     --ad-reserve so the desk scales to fit above it; with no ad (blocked,
+     failed, still loading) the reserve is 0 and nothing changes. The
+     reserve deliberately stays put while a modal is open so the desk
+     behind the dimmed overlay doesn't jump every time one opens.
+  ========================================================= */
+  const adBannerEl = document.getElementById('adBanner');
+  const adSlotEl = document.getElementById('adSlot');
+  let adStarted = false;
+
+  function updateAdReserve(){
+    const rootStyle = document.documentElement.style;
+    const wanted = (adStarted && adSlotEl.offsetHeight > 0)
+      ? adBannerEl.offsetHeight + 4   // slot + its bottom padding + a hair of air
+      : 0;
+    const current = parseFloat(rootStyle.getPropertyValue('--ad-reserve')) || 0;
+    if(Math.abs(wanted - current) < 0.5) return;
+    rootStyle.setProperty('--ad-reserve', wanted + 'px');
+    requestFit();
+  }
+
+  function updateAdVisibility(){
+    const visible = adStarted && !document.querySelector('.modal-overlay.open');
+    adBannerEl.classList.toggle('show', visible);
+  }
+
+  function startAd(){
+    if(adStarted) return;
+    adStarted = true;
+    updateAdVisibility();
+    const s = document.createElement('script');
+    s.async = true;
+    s.setAttribute('data-cfasync', 'false');
+    s.src = 'https://pl31484351.profitableratecpmnetwork.com/fc84cc69b537a764d032e2f8cb829e9d/invoke.js';
+    document.body.appendChild(s);
+    updateAdReserve();
+  }
+
+  // Modals open/close by toggling .open on each overlay.
+  if(window.MutationObserver){
+    const adModalObserver = new MutationObserver(updateAdVisibility);
+    document.querySelectorAll('.modal-overlay').forEach(function(m){
+      adModalObserver.observe(m, { attributes:true, attributeFilter:['class'] });
+    });
+  }
+  // The ad fills its slot asynchronously; track its rendered size.
+  if(window.ResizeObserver){
+    new ResizeObserver(updateAdReserve).observe(adSlotEl);
+  } else {
+    setInterval(updateAdReserve, 1000);
+  }
+  window.addEventListener('resize', updateAdReserve);
+  window.addEventListener('orientationchange', updateAdReserve);
+
+  /* =========================================================
      TITLE SCREEN
      Tap fades the CALC-U-LATOR title to black, swaps in a static
      "PLASTICINE GAMES" studio splash (dropped in with the studio's own
@@ -3558,6 +3659,7 @@
     titleScreenEl.classList.add('hide');
     deskEl.classList.add('revealed');
     requestFit();
+    startAd();
     titleScreenEl.addEventListener('transitionend', function(){
       titleScreenEl.style.display = 'none';
     }, { once:true });

@@ -1116,7 +1116,7 @@
   .ad-banner{
     position:fixed; left:0; right:0; bottom:0; z-index:10;
     display:flex; justify-content:center;
-    padding:0 max(14px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    padding:0 max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left));   /* flush with the bottom edge */
     pointer-events:none;              /* transparent padding never eats taps */
     visibility:hidden; opacity:0;
     transition:opacity 0.25s ease, visibility 0s linear 0.25s;
@@ -1132,6 +1132,7 @@
     pointer-events:auto;
     text-align:center;
   }
+  .ad-slot iframe, .ad-slot img{ display:block; margin:0 auto; vertical-align:bottom; }
 
   /* ---------- Modals ---------- */
   .modal-overlay{
@@ -3606,7 +3607,7 @@
   function updateAdReserve(){
     const rootStyle = document.documentElement.style;
     const wanted = (adStarted && adSlotEl.offsetHeight > 0)
-      ? adBannerEl.offsetHeight + 4   // slot + its bottom padding + a hair of air
+      ? adBannerEl.offsetHeight + 4   // banner height + a hair of air above it
       : 0;
     const current = parseFloat(rootStyle.getPropertyValue('--ad-reserve')) || 0;
     if(Math.abs(wanted - current) < 0.5) return;

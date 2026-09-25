@@ -1109,6 +1109,41 @@
     to{ width:0%; }
   }
 
+  /* ---------- Calc Rush cameo + minigame: tapping the cameo opens a
+     Zerg-rush-style defense round where unlocked digits close in on a
+     mini calculator and get destroyed by typing/tapping their matching
+     number. The cameo itself is just one of those digits: it fades in
+     somewhere on the LCD, drifts gently in place, then fades back out. ---------- */
+  .lcd-num-cameo{
+    display:none;
+    position:absolute; z-index:5;
+    font-family:'VT323', monospace; font-size:1.5rem; line-height:1;
+    color:var(--lcd-text);
+    text-shadow:0 0 8px rgba(43,51,32,0.35);
+    background:none; border:none; cursor:pointer;
+    padding:10px; margin:-10px;
+    touch-action:manipulation;
+    animation:numCameoFloat 6s ease-in-out forwards;
+    will-change:transform, opacity;
+  }
+  .lcd-num-cameo.drift-reverse{ animation-name:numCameoFloatReverse; }
+  @keyframes numCameoFloat{
+    0%{ opacity:0; transform:translate(0,4px) scale(0.7); }
+    14%{ opacity:1; transform:translate(0,0) scale(1); }
+    38%{ transform:translate(9px,-7px) scale(1); }
+    62%{ transform:translate(-7px,-14px) scale(1); }
+    86%{ opacity:1; transform:translate(5px,-20px) scale(1); }
+    100%{ opacity:0; transform:translate(0,-24px) scale(0.85); }
+  }
+  @keyframes numCameoFloatReverse{
+    0%{ opacity:0; transform:translate(0,4px) scale(0.7); }
+    14%{ opacity:1; transform:translate(0,0) scale(1); }
+    38%{ transform:translate(-9px,-7px) scale(1); }
+    62%{ transform:translate(7px,-14px) scale(1); }
+    86%{ opacity:1; transform:translate(-5px,-20px) scale(1); }
+    100%{ opacity:0; transform:translate(0,-24px) scale(0.85); }
+  }
+
   .lcd-minigame{
     display:none; position:absolute; inset:0; z-index:6;
     flex-direction:column;
@@ -1138,6 +1173,74 @@
   .dg-hint{
     font-family:'IBM Plex Mono'; font-size:0.6rem; color:var(--lcd-text-dim);
     text-align:center; margin-top:4px;
+  }
+
+  /* ---------- Calc Rush: health bar sits inline in the HUD between the
+     label and score; the mini calculator anchors the field's center and
+     enemies (unlocked digits) close in on it from every direction. ---------- */
+  .cr-health{
+    position:relative; flex:1 1 auto; margin:0 8px; height:6px;
+    border-radius:3px; background:rgba(43,51,32,0.3); overflow:hidden;
+  }
+  .cr-health-fill{
+    display:block; height:100%; width:100%;
+    background:var(--danger);
+    transition:width 0.2s ease;
+  }
+  .cr-field{ overflow:visible; }
+  .cr-calc{
+    position:absolute; right:14px; top:50%; width:22px; height:26px;
+    transform:translateY(-50%);
+    background:var(--lcd-text); border-radius:2px;
+  }
+  .cr-calc::before{
+    content:''; position:absolute; left:3px; right:3px; top:3px; height:8px;
+    background:var(--lcd-bg);
+  }
+  .cr-calc::after{
+    content:''; position:absolute; left:3px; top:14px; width:3px; height:3px;
+    background:var(--lcd-bg);
+    box-shadow:7px 0 var(--lcd-bg), 0 6px var(--lcd-bg), 7px 6px var(--lcd-bg);
+  }
+  .cr-enemy{
+    position:absolute; left:0; top:0; width:20px; height:24px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    font-family:'VT323', monospace; font-size:1.05rem; line-height:1;
+    color:var(--lcd-text); will-change:transform;
+  }
+  .cr-enemy.hit{ animation:crHitFlash 0.09s steps(1,end); }
+  @keyframes crHitFlash{ 0%,100%{ opacity:1; } 50%{ opacity:0.2; } }
+  .cr-enemy-hp{
+    width:18px; height:3px; border-radius:1.5px; overflow:hidden;
+    background:rgba(43,51,32,0.35);
+  }
+  .cr-enemy-hp-fill{
+    display:block; height:100%; width:100%;
+    background:var(--lcd-text);
+    transition:width 0.15s ease;
+  }
+
+  .cr-intro{
+    position:absolute; inset:0; z-index:7;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    background:rgba(199,209,163,0.92);
+    opacity:0; pointer-events:none;
+    transition:opacity 0.25s ease;
+    text-align:center; padding:10px;
+  }
+  .cr-intro.show{ opacity:1; }
+  .cr-intro-title{
+    font-family:'VT323', monospace; font-size:1.7rem; color:var(--lcd-text);
+    text-shadow:0 0 8px rgba(43,51,32,0.35); letter-spacing:1px;
+  }
+  .cr-intro-line{
+    font-family:'IBM Plex Mono'; font-size:0.68rem; color:var(--lcd-text-dim);
+    letter-spacing:0.3px;
+  }
+  .cr-intro-sub{ margin-top:2px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .cr-enemy.hit{ animation:none !important; }
   }
   /* Game over: lives on the LCD itself. It's a translucent sheet of LCD
      "glass" over the whole display (the frozen run stays visible and
@@ -1844,6 +1947,8 @@
             </span>
           </button>
 
+          <button class="lcd-num-cameo" id="lcdCalcCameo" type="button" aria-label="A floating number! Tap to play Calc Rush" aria-hidden="true"></button>
+
           <div class="lcd-minigame" id="lcdMinigame" aria-hidden="true">
             <div class="dg-hud">
               <span class="dg-hud-label">DINO RUN</span>
@@ -1868,6 +1973,31 @@
               <div class="dg-go-row">
                 <span class="dg-go-earned">you earned</span>
                 <span class="lcd-score" id="dgFinalScore">0</span>
+              </div>
+              <div class="dg-go-hint">press = to continue</div>
+            </div>
+          </div>
+
+          <div class="lcd-minigame" id="lcdCalcRush" aria-hidden="true">
+            <div class="cr-intro" id="crIntro">
+              <div class="cr-intro-title">CALC RUSH</div>
+              <div class="cr-intro-line">Defend your calculator!</div>
+              <div class="cr-intro-line cr-intro-sub">Destroy enemies by using your numpad!</div>
+            </div>
+            <div class="dg-hud">
+              <span class="dg-hud-label">CALC RUSH</span>
+              <span class="cr-health" aria-hidden="true"><span class="cr-health-fill" id="crHealthFill"></span></span>
+              <span class="dg-hud-score" id="crScore">0</span>
+            </div>
+            <div class="dg-field cr-field" id="crField">
+              <div class="cr-calc"></div>
+            </div>
+            <div class="dg-hint">type a number to destroy that enemy</div>
+            <div class="dg-gameover" id="crGameOver" role="status">
+              <div class="lcd-score dg-go-title">GAME OVER</div>
+              <div class="dg-go-row">
+                <span class="dg-go-earned">you earned</span>
+                <span class="lcd-score" id="crFinalScore">0</span>
               </div>
               <div class="dg-go-hint">press = to continue</div>
             </div>
@@ -2715,6 +2845,14 @@
   const dgScoreEl = document.getElementById('dgScore');
   const dgGameOverEl = document.getElementById('dgGameOver');
   const dgFinalScoreEl = document.getElementById('dgFinalScore');
+  const lcdCalcCameoEl = document.getElementById('lcdCalcCameo');
+  const lcdCalcRushEl = document.getElementById('lcdCalcRush');
+  const crIntroEl = document.getElementById('crIntro');
+  const crFieldEl = document.getElementById('crField');
+  const crHealthFillEl = document.getElementById('crHealthFill');
+  const crScoreEl = document.getElementById('crScore');
+  const crGameOverEl = document.getElementById('crGameOver');
+  const crFinalScoreEl = document.getElementById('crFinalScore');
   const memBtnEl = document.getElementById('memBtn');
   const muteBtn = document.getElementById('muteBtn');
   const musicBtn = document.getElementById('musicBtn');
@@ -3068,6 +3206,20 @@
       if(action === 'equals'){
         if(!dino.gameOver) dinoJump();
         else if(performance.now() >= dino.dismissAt) closeDinoGame();
+      }
+      return;
+    }
+    if(calcRush.active){
+      // While Calc Rush owns the LCD, digit keys attack instead of
+      // selecting, and every other key is disabled so a mid-round tap
+      // can't spend or reselect anything. = only dismisses the
+      // game-over screen, same grace-period rule as the dino run.
+      if(action === 'equals'){
+        if(calcRush.gameOver && performance.now() >= calcRush.dismissAt) closeCalcRush();
+        return;
+      }
+      if(!calcRush.gameOver && value !== undefined && '0123456789'.indexOf(value) !== -1){
+        crHitDigit(value);
       }
       return;
     }
@@ -4194,18 +4346,18 @@
   function spawnCameoEvent(){
     // Don't interrupt the title screen, an open modal, the minigame
     // itself, or a backgrounded tab — just try again shortly after.
-    if(dino.active || balloon.active || document.hidden || document.querySelector('.modal-overlay.open') ||
+    if(dino.active || balloon.active || calcRush.active || document.hidden || document.querySelector('.modal-overlay.open') ||
        !titleScreenEl.classList.contains('hide')){
       cameoTimer = setTimeout(spawnCameoEvent, 4000);
       return;
     }
-    // Random chance for the "event" that occurs: the dino cameo (opens
-    // the minigame) or the balloon cameo (triggers a frenzy).
-    if(Math.random() < 0.5){
-      spawnDinoCameo();
-    } else {
-      spawnBalloonCameo();
-    }
+    // Random chance for the "event" that occurs: the dino cameo or the
+    // Calc Rush cameo (each opens a minigame), or the balloon cameo
+    // (triggers a frenzy).
+    const r = Math.random();
+    if(r < 0.34) spawnDinoCameo();
+    else if(r < 0.67) spawnBalloonCameo();
+    else spawnCalcCameo();
   }
 
   function spawnDinoCameo(){
@@ -4593,6 +4745,240 @@
   // = key. dinoJump() already no-ops once the run is over (or mid-jump),
   // so a tap on the frozen game-over screen does nothing — only = leaves it.
   lcdMinigameEl.addEventListener('pointerdown', ()=> dinoJump());
+
+  /* =========================================================
+     CALC RUSH MINIGAME
+     A cameo calculator occasionally scoots across the LCD. Tapping it
+     replaces the LCD with a Zerg-rush-style defense round: only digits
+     already unlocked on the real keypad spawn as enemies and close in
+     on a mini calculator at the center. Typing (or tapping) a digit
+     attacks the nearest enemy showing that number — each hit deals 1
+     damage, so a '9' (9 health) takes longer to put down than a '1'
+     (1 health). Destroying one pays 3x the calculator's current tap
+     (=) value, multiplied by the enemy's own number. Letting 10 of
+     them reach the calculator ends the round.
+  ========================================================= */
+  const CR_HEALTH_MAX = 10;
+  const CR_INTRO_MS = 2200;
+  const CR_BASE_SPAWN = 1.6, CR_MIN_SPAWN = 0.55, CR_SPAWN_RAMP = 0.02;
+  const CR_BASE_SPEED = 70, CR_SPEED_RAMP = 1.4; // px/s of radius closed per second
+  const CR_HIT_RADIUS = 14;
+  const CR_CALC_OFFSET = 25; // px from the field's right edge to the calc's own center
+  const CR_DISMISS_DELAY_MS = 650;
+
+  const calcRush = {
+    active:false, gameOver:false, raf:null, lastTs:null, introUntil:0,
+    health:CR_HEALTH_MAX, elapsed:0, spawnTimer:0,
+    enemies:[], runScore:0, dismissAt:0,
+  };
+
+  function spawnCalcCameo(){
+    const pool = Array.from(state.unlockedNumbers).filter(d => d !== '0');
+    lcdCalcCameoEl.textContent = pool.length ? pool[Math.floor(Math.random() * pool.length)] : '1';
+    lcdCalcCameoEl.style.left = randRange(14, 78) + '%';
+    lcdCalcCameoEl.style.top = randRange(18, 62) + '%';
+    lcdCalcCameoEl.classList.toggle('drift-reverse', Math.random() < 0.5);
+    lcdCalcCameoEl.style.display = 'block';
+    lcdCalcCameoEl.style.animation = 'none';
+    void lcdCalcCameoEl.offsetWidth;
+    lcdCalcCameoEl.style.animation = '';
+    lcdCalcCameoEl.setAttribute('aria-hidden', 'false');
+
+    const onTap = (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      cleanup();
+      startCalcRush();
+    };
+    const onDone = ()=>{
+      cleanup();
+      scheduleCameoEvent();
+    };
+    function cleanup(){
+      lcdCalcCameoEl.style.display = 'none';
+      lcdCalcCameoEl.setAttribute('aria-hidden', 'true');
+      lcdCalcCameoEl.removeEventListener('pointerdown', onTap);
+      lcdCalcCameoEl.removeEventListener('click', onTap);
+      lcdCalcCameoEl.removeEventListener('animationend', onDone);
+    }
+    lcdCalcCameoEl.addEventListener('pointerdown', onTap, { once:true });
+    lcdCalcCameoEl.addEventListener('click', onTap, { once:true });
+    lcdCalcCameoEl.addEventListener('animationend', onDone, { once:true });
+  }
+
+  function startCalcRush(){
+    calcRush.active = true;
+    calcRush.gameOver = false;
+    calcRush.health = CR_HEALTH_MAX;
+    calcRush.elapsed = 0;
+    calcRush.spawnTimer = CR_BASE_SPAWN;
+    calcRush.runScore = 0;
+    calcRush.lastTs = null;
+    calcRush.enemies.forEach(en => en.el.remove());
+    calcRush.enemies = [];
+    crScoreEl.textContent = '0';
+    crHealthFillEl.style.width = '100%';
+    crGameOverEl.classList.remove('show');
+    lcdCalcRushEl.classList.remove('over');
+    lcdCalcRushEl.classList.add('active');
+    lcdCalcRushEl.setAttribute('aria-hidden', 'false');
+    crIntroEl.classList.add('show');
+    calcRush.introUntil = performance.now() + CR_INTRO_MS;
+    beep(440, 0.06, 0.04);
+    setTimeout(()=> crIntroEl.classList.remove('show'), CR_INTRO_MS);
+    calcRush.raf = requestAnimationFrame(crGameLoop);
+  }
+
+  // The calculator sits near the right edge of the field rather than the
+  // center, so every enemy closes in on that point instead.
+  function crAnchor(){
+    const w = crFieldEl.clientWidth, h = crFieldEl.clientHeight;
+    return { x: w - CR_CALC_OFFSET, y: h / 2, w, h };
+  }
+
+  // Distance from (cx,cy) to the edge of the [0,w]x[0,h] box, traveling
+  // in the given direction — used to place spawns relative to the LCD's
+  // own bounds rather than wherever the calculator happens to sit.
+  function crEdgeDistance(cx, cy, angle, w, h){
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    let t = Infinity;
+    if(dx > 0) t = Math.min(t, (w - cx) / dx);
+    else if(dx < 0) t = Math.min(t, (0 - cx) / dx);
+    if(dy > 0) t = Math.min(t, (h - cy) / dy);
+    else if(dy < 0) t = Math.min(t, (0 - cy) / dy);
+    return t;
+  }
+
+  function crSpawnEnemy(){
+    const pool = Array.from(state.unlockedNumbers).filter(d => d !== '0');
+    if(!pool.length){ calcRush.spawnTimer = 1; return; }
+    const digit = pool[Math.floor(Math.random() * pool.length)];
+    const hp = Number(digit);
+    const a = crAnchor();
+    const cx = a.w / 2, cy = a.h / 2;
+    // 135°–225° around the LCD's own center: directly left, with a bit
+    // of spread up and down, so enemies only ever approach from the
+    // left side of the screen.
+    const angle = randRange(Math.PI * 0.75, Math.PI * 1.25);
+    const edgeR = crEdgeDistance(cx, cy, angle, a.w, a.h);
+    // A flat pixel buffer on top of the multiplier guarantees the spawn
+    // clears the edge even when edgeR itself is small (steep angles
+    // near a corner), so nothing ever pops in already inside the LCD.
+    const r = edgeR * randRange(1.08, 1.25) + 10;
+    const sx = cx + Math.cos(angle) * r, sy = cy + Math.sin(angle) * r;
+    // Convert that LCD-relative spawn point into anchor-relative polar
+    // coordinates, since the per-frame update closes in on the anchor.
+    const dx = sx - a.x, dy = sy - a.y;
+    const aAngle = Math.atan2(dy, dx);
+    const aR = Math.hypot(dx, dy);
+    const el = document.createElement('div');
+    el.className = 'cr-enemy';
+    el.innerHTML = '<span class="cr-enemy-num">' + digit + '</span>' +
+      '<span class="cr-enemy-hp"><span class="cr-enemy-hp-fill"></span></span>';
+    crFieldEl.appendChild(el);
+    const enemy = { el, digit, hp, maxHp:hp, r:aR, angle:aAngle, fillEl: el.querySelector('.cr-enemy-hp-fill') };
+    calcRush.enemies.push(enemy);
+    crPositionEnemy(enemy, a.x, a.y);
+    calcRush.spawnTimer = Math.max(CR_MIN_SPAWN, CR_BASE_SPAWN - calcRush.elapsed * CR_SPAWN_RAMP);
+  }
+
+  function crPositionEnemy(en, cx, cy){
+    const x = cx + Math.cos(en.angle) * en.r, y = cy + Math.sin(en.angle) * en.r;
+    en.el.style.transform = 'translate(' + (x - 10) + 'px,' + (y - 12) + 'px)';
+  }
+
+  function crDamageCalc(n){
+    calcRush.health = Math.max(0, calcRush.health - n);
+    crHealthFillEl.style.width = (calcRush.health / CR_HEALTH_MAX * 100) + '%';
+    beep(160, 0.09, 0.05);
+    if(calcRush.health <= 0) endCalcRush();
+  }
+
+  function crHitDigit(digit){
+    if(!calcRush.active || calcRush.gameOver || performance.now() < calcRush.introUntil) return;
+    let target = null;
+    calcRush.enemies.forEach(en=>{ if(en.digit === digit && (!target || en.r < target.r)) target = en; });
+    if(!target) return;
+    target.hp -= 1;
+    if(target.hp <= 0){
+      calcRush.enemies.splice(calcRush.enemies.indexOf(target), 1);
+      target.el.remove();
+      const reward = 3 * computeSelectedResult() * Number(target.digit);
+      state.score += reward;
+      calcRush.runScore += reward;
+      renderScore();
+      crScoreEl.textContent = formatCompact(calcRush.runScore);
+      beep(880, 0.05, 0.045);
+    } else {
+      target.el.classList.add('hit');
+      if(target.fillEl) target.fillEl.style.width = (target.hp / target.maxHp * 100) + '%';
+      setTimeout(()=>{ if(target.el) target.el.classList.remove('hit'); }, 90);
+      beep(300, 0.03, 0.03);
+    }
+  }
+
+  function crGameLoop(ts){
+    if(!calcRush.active) return;
+    if(calcRush.lastTs === null) calcRush.lastTs = ts;
+    const dt = Math.min((ts - calcRush.lastTs) / 1000, 0.05);
+    calcRush.lastTs = ts;
+
+    if(!calcRush.gameOver && performance.now() >= calcRush.introUntil){
+      calcRush.elapsed += dt;
+      const speed = CR_BASE_SPEED + calcRush.elapsed * CR_SPEED_RAMP;
+      calcRush.spawnTimer -= dt;
+      if(calcRush.spawnTimer <= 0) crSpawnEnemy();
+
+      const a = crAnchor();
+      for(let i = calcRush.enemies.length - 1; i >= 0; i--){
+        const en = calcRush.enemies[i];
+        en.r -= speed * dt;
+        if(en.r <= CR_HIT_RADIUS){
+          en.el.remove();
+          calcRush.enemies.splice(i, 1);
+          crDamageCalc(1);
+          continue;
+        }
+        crPositionEnemy(en, a.x, a.y);
+      }
+    }
+    calcRush.raf = requestAnimationFrame(crGameLoop);
+  }
+
+  function endCalcRush(){
+    calcRush.gameOver = true;
+    cancelAnimationFrame(calcRush.raf);
+    playDinoGameOverSound();
+    crFinalScoreEl.textContent = formatScoreMain(calcRush.runScore);
+    calcRush.dismissAt = performance.now() + CR_DISMISS_DELAY_MS;
+    lcdCalcRushEl.classList.add('over');
+    crGameOverEl.classList.add('show');
+    if(calcRush.runScore > 0){
+      printTape('CALC RUSH  ' + Math.floor(calcRush.elapsed) + 's = ' + formatCompact(calcRush.runScore), true);
+    }
+  }
+
+  function closeCalcRush(){
+    calcRush.active = false;
+    lcdCalcRushEl.classList.remove('active');
+    lcdCalcRushEl.setAttribute('aria-hidden', 'true');
+    lcdCalcRushEl.classList.remove('over');
+    crGameOverEl.classList.remove('show');
+    calcRush.enemies.forEach(en => en.el.remove());
+    calcRush.enemies = [];
+    renderScore();
+    scheduleCameoEvent();
+  }
+
+  // Physical number-key typing also attacks, alongside tapping the
+  // on-screen numpad (handled in the keypad click listener above).
+  document.addEventListener('keydown', function(e){
+    if(!calcRush.active || calcRush.gameOver) return;
+    if('0123456789'.indexOf(e.key) !== -1){
+      e.preventDefault();
+      crHitDigit(e.key);
+    }
+  });
 
   /* =========================================================
      GAME LOOP

@@ -4932,7 +4932,12 @@
       const a = crAnchor();
       for(let i = calcRush.enemies.length - 1; i >= 0; i--){
         const en = calcRush.enemies[i];
-        en.r -= speed * dt;
+        // Larger-numbered enemies move proportionally slower: speed is
+        // divided by the enemy's own digit value (maxHp holds that value
+        // and stays fixed even as hp drops from hits), so a '9' crawls at
+        // roughly 1/9th the pace of a '1' rather than every enemy closing
+        // in at the same uniform rate.
+        en.r -= (speed / en.maxHp) * dt;
         if(en.r <= CR_HIT_RADIUS){
           en.el.remove();
           calcRush.enemies.splice(i, 1);

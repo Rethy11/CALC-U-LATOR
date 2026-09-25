@@ -240,7 +240,23 @@
   }
   .title-screen.hide{ opacity:0; pointer-events:none; }
 
-  .title-face{ display:flex; flex-direction:column; align-items:center; }
+  .title-face{ display:flex; flex-direction:column; align-items:center; position:relative; z-index:2; }
+
+  /* ---------- console plaque: houses the LCD + power switch together so
+     the title reads as one physical object sitting on the desk (matching
+     the calculator's own case material/radius) instead of two unrelated
+     floating pieces. ---------- */
+  .title-console{
+    display:flex; flex-direction:column; align-items:center;
+    background:linear-gradient(160deg, var(--case-hi), var(--case) 55%, var(--case-lo));
+    border-radius:calc(var(--radius-case) - 4px);
+    padding:22px 20px 18px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 0 0 0 1px rgba(0,0,0,0.35),
+      0 14px 30px -10px rgba(30,18,6,0.55),
+      0 3px 0 rgba(20,12,5,0.4);
+  }
 
   /* ---------- title LCD: same green-glass screen as the in-game display
      (.lcd), carrying the game name/subhead set in the exact font+glow of
@@ -249,10 +265,9 @@
     background:linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-dim));
     border-radius:10px;
     padding:24px 22px 20px;
-    margin-bottom:26px;
     max-width:360px;
-    width:min(82vw, 360px);
-    box-shadow:inset 0 2px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579, 0 10px 26px -8px rgba(0,0,0,0.55);
+    width:min(78vw, 360px);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,0.35), inset 0 0 0 2px #9aa579, 0 4px 10px -4px rgba(0,0,0,0.5);
   }
   .title-lcd-h1{
     font-family:'VT323', monospace; font-weight:400;
@@ -273,7 +288,7 @@
      flicks over on press for a bit of tactile feedback. ---------- */
   .power-switch{
     display:flex; flex-direction:column; align-items:center; gap:7px;
-    margin-top:min(6vh, 40px);
+    margin-top:20px;
   }
   .power-switch-track{
     position:relative;
@@ -298,16 +313,126 @@
 
   .title-face .tap-prompt{
     font-family:'IBM Plex Mono', monospace;
-    margin-top:14px;
+    margin-top:22px;
     color:var(--desk-ink);
     font-weight:600;
-    font-size:1rem;
+    font-size:0.82rem;
     letter-spacing:0.14em;
     text-transform:uppercase;
-    text-shadow:0 1px 0 rgba(255,250,235,0.4);
+    padding:8px 18px;
+    border-radius:999px;
+    background:rgba(255,250,235,0.35);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), inset 0 0 0 1px rgba(59,39,18,0.18), 0 2px 6px -2px rgba(59,39,18,0.25);
     animation:pulseTap 1.8s ease-in-out infinite;
   }
-  @keyframes pulseTap{ 0%,100%{opacity:0.75;} 50%{opacity:1;} }
+  @keyframes pulseTap{ 0%,100%{opacity:0.72;} 50%{opacity:1;} }
+
+  /* =====================================================
+     desk props — realistic school supplies scattered around
+     the title screen so it reads as a still-life on the same
+     desk the calculator sits on. Pure CSS/SVG, no external
+     assets. Decorative only: never intercept the tap target. ===================================================== */
+  .desk-prop{ position:absolute; z-index:1; pointer-events:none; filter:drop-shadow(0 6px 7px rgba(40,24,8,0.35)); }
+
+  .prop-pencil{ top:9%; left:6%; width:150px; transform:rotate(-34deg); }
+  .prop-pencil .pencil-body{ position:relative; width:150px; height:15px; }
+  .prop-pencil .pencil-shaft{
+    position:absolute; left:0; top:0; width:112px; height:15px; border-radius:2px 0 0 2px;
+    background:linear-gradient(180deg, #f6cf4e 0%, #eab924 42%, #d9a410 55%, #c8940c 100%);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.18);
+  }
+  .prop-pencil .pencil-shaft::before{
+    content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 2px, transparent 2px 14px);
+  }
+  .prop-pencil .pencil-ferrule{
+    position:absolute; left:112px; top:0; width:14px; height:15px;
+    background:linear-gradient(180deg,#dcdcd6,#a7a79e 45%,#8a8a80);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.5);
+  }
+  .prop-pencil .pencil-eraser{
+    position:absolute; left:126px; top:0; width:24px; height:15px; border-radius:0 6px 6px 0;
+    background:linear-gradient(180deg,#f2a0a8,#d97a86 55%,#c0616e);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.35);
+  }
+  .prop-pencil .pencil-tip{
+    position:absolute; left:-16px; top:0; width:0; height:0;
+    border-top:7.5px solid transparent; border-bottom:7.5px solid transparent;
+    border-right:16px solid #e7c07f;
+  }
+  .prop-pencil .pencil-tip::after{
+    content:''; position:absolute; left:9px; top:-2.5px; width:0; height:0;
+    border-top:2.5px solid transparent; border-bottom:2.5px solid transparent;
+    border-right:7px solid #3a2c22;
+  }
+
+  .prop-ruler{
+    top:7%; right:4%; width:190px; height:26px; transform:rotate(19deg);
+    background:linear-gradient(180deg,#e8c98a,#d3aa5e 50%,#c0954a);
+    border-radius:2px;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(0,0,0,0.15);
+  }
+  .prop-ruler::before{
+    content:''; position:absolute; inset:4px 6px; background:rgba(255,255,255,0.16); border-radius:1px;
+  }
+  .prop-ruler::after{
+    content:''; position:absolute; top:5px; bottom:5px; left:6px; right:6px;
+    background-image:repeating-linear-gradient(90deg, rgba(58,39,18,0.55) 0 1px, transparent 1px 9px),
+                      repeating-linear-gradient(90deg, rgba(58,39,18,0.35) 0 1.5px, transparent 1.5px 27px);
+    background-size:100% 60%, 100% 100%;
+    background-position:bottom, bottom;
+    background-repeat:repeat-x;
+  }
+
+  .prop-sticky{
+    bottom:11%; left:5%; width:76px; height:76px; transform:rotate(-9deg);
+    background:linear-gradient(160deg,#fff2a0,#ffe273 60%,#f7d24e);
+    box-shadow:0 3px 3px rgba(0,0,0,0.12), 2px 5px 8px -3px rgba(40,24,8,0.4);
+  }
+  .prop-sticky::before{
+    content:''; position:absolute; inset:0; clip-path:polygon(0 0,100% 0,100% 100%,0 100%);
+    background:linear-gradient(215deg, transparent 47%, rgba(0,0,0,0.12) 48%, transparent 52%);
+  }
+  .prop-sticky::after{
+    content:''; position:absolute; left:12px; right:12px; top:22px;
+    background-image:repeating-linear-gradient(0deg, rgba(58,39,18,0.4) 0 2px, transparent 2px 12px);
+    height:34px;
+  }
+
+  .prop-paperclip{ bottom:9%; left:16%; width:22px; height:46px; transform:rotate(14deg); }
+  .prop-paperclip svg{ width:100%; height:100%; display:block; }
+
+  .prop-eraser{
+    bottom:8%; right:7%; width:58px; height:26px; transform:rotate(-13deg);
+    border-radius:4px;
+    background:linear-gradient(180deg,#8fd0e8,#5fb3d6 55%,#4a9bc0);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.15);
+  }
+  .prop-eraser::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:8px; border-radius:4px 4px 0 0;
+    background:rgba(255,255,255,0.28);
+  }
+
+  .prop-crayon{
+    bottom:20%; right:16%; width:98px; height:13px; transform:rotate(31deg);
+    border-radius:6px 2px 2px 6px;
+    background:linear-gradient(180deg,#8fcf7a,#66b34e 55%,#4f9a3a);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.15);
+  }
+  .prop-crayon::after{
+    content:''; position:absolute; right:-9px; top:0; width:0; height:0;
+    border-top:6.5px solid transparent; border-bottom:6.5px solid transparent;
+    border-left:11px solid #4f9a3a;
+  }
+
+  @media (max-width:640px), (max-height:640px){
+    .desk-prop{ transform-origin:center; scale:0.7; opacity:0.85; }
+  }
+  @media (max-width:420px){
+    .prop-ruler, .prop-crayon{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .desk-prop{ filter:none; }
+  }
 
   /* ---------- studio splash: exact palette/type of the Plasticine Games
      bumper — dropped in wholesale rather than reskinned, since it's shared
@@ -324,6 +449,7 @@
   }
   .title-screen.scene-studio .title-face{ display:none; }
   .title-screen.scene-studio .studio-face{ display:flex; }
+  .title-screen.scene-studio .desk-prop{ display:none; }
 
   .studio-face .eyes{ display:flex; justify-content:center; gap:8px; margin-bottom:10px; }
   .studio-face .eyes span{
@@ -1479,14 +1605,34 @@
 </svg>
 
 <button type="button" class="title-screen" id="titleScreen" aria-label="Tap to play">
-  <div class="title-face" id="titleFace">
-    <div class="title-lcd-panel" aria-hidden="true">
-      <h1 class="title-lcd-h1">CALC&#8209;U&#8209;LATOR</h1>
-      <div class="title-lcd-tag">Model CC&#8209;1 &middot; Idle Calculator</div>
+  <div class="desk-prop prop-pencil" aria-hidden="true">
+    <div class="pencil-body">
+      <div class="pencil-tip"></div>
+      <div class="pencil-shaft"></div>
+      <div class="pencil-ferrule"></div>
+      <div class="pencil-eraser"></div>
     </div>
-    <div class="power-switch" aria-hidden="true">
-      <div class="power-switch-track"><span class="power-switch-knob"></span></div>
-      <span class="power-switch-label">power</span>
+  </div>
+  <div class="desk-prop prop-ruler" aria-hidden="true"></div>
+  <div class="desk-prop prop-sticky" aria-hidden="true"></div>
+  <div class="desk-prop prop-paperclip" aria-hidden="true">
+    <svg viewBox="0 0 24 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17 6v27a5 5 0 0 1-10 0V10a3 3 0 0 1 6 0v20a1 1 0 0 1-2 0V12" stroke="#b6bcc2" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M17 6v27a5 5 0 0 1-10 0V10a3 3 0 0 1 6 0v20a1 1 0 0 1-2 0V12" stroke="#e8ecef" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="desk-prop prop-eraser" aria-hidden="true"></div>
+  <div class="desk-prop prop-crayon" aria-hidden="true"></div>
+  <div class="title-face" id="titleFace">
+    <div class="title-console" aria-hidden="true">
+      <div class="title-lcd-panel">
+        <h1 class="title-lcd-h1">CALC&#8209;U&#8209;LATOR</h1>
+        <div class="title-lcd-tag">Model CC&#8209;1 &middot; Idle Calculator</div>
+      </div>
+      <div class="power-switch">
+        <div class="power-switch-track"><span class="power-switch-knob"></span></div>
+        <span class="power-switch-label">power</span>
+      </div>
     </div>
     <div class="tap-prompt">tap to power on</div>
   </div>
